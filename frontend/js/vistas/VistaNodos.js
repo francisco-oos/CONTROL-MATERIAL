@@ -2,6 +2,8 @@
 // VistaNodos.js
 // ===============================
 
+
+
 import { API_BASE } from '../../config.js';
 
 let listaTecnologias = [];
@@ -42,6 +44,7 @@ async function cargarFiltrosTecnologia() {
     const res = await fetch(API_TECNOLOGIAS);
     const tecnologias = await res.json();
     listaTecnologias = tecnologias;
+    console.log("Tecnologías cargadas:", listaTecnologias);  // Verifica que se cargan las tecnologías
     tecnologias.forEach(t => {
       const opt = document.createElement("option");
       opt.value = t.id;
@@ -49,9 +52,10 @@ async function cargarFiltrosTecnologia() {
       select.appendChild(opt);
     });
   } catch (err) {
-    console.error("❌ Error al cargar tecnologías:", err);
+    console.error(" Error al cargar tecnologías:", err);
   }
 }
+
 
 // Cargar todos los nodos (solo una vez)
 async function cargarTodosNodos() {
@@ -63,7 +67,6 @@ async function cargarTodosNodos() {
   }
 }
 
-// Renderiza la página actual
 function renderizarPagina() {
   const tbody = document.getElementById("tbody-nodos");
   tbody.innerHTML = "";
@@ -71,7 +74,7 @@ function renderizarPagina() {
   // Aplicar filtros
   let nodosFiltrados = nodosCache.filter(n => {
     return (!currentSerie || n.serie.includes(currentSerie)) &&
-           (!currentTecnologia || n.id_tecnologia == currentTecnologia);
+           (!currentTecnologia || n.id_tecnologia === Number(currentTecnologia));
   });
 
   const totalPaginas = Math.ceil(nodosFiltrados.length / limit);
@@ -116,6 +119,7 @@ function renderizarPagina() {
   document.getElementById("pagina-actual").textContent = `Página ${currentPage} de ${totalPaginas || 1}`;
 }
 
+
 // Actualizar estatus del nodo
 async function actualizarEstatus(id, nuevoEstatus, fila) {
   try {
@@ -138,10 +142,10 @@ async function actualizarEstatus(id, nuevoEstatus, fila) {
         nodosCache[nodoIndex].fecha_actualizacion = data.fecha_actualizacion;
       }
     } else {
-      alert(`❌ Error: ${data.error}`);
+      alert(` Error: ${data.error}`);
     }
   } catch (err) {
-    console.error("❌ Error al actualizar estatus:", err);
+    console.error(" Error al actualizar estatus:", err);
     alert("Error al conectar con el servidor");
   }
 }
@@ -149,6 +153,30 @@ async function actualizarEstatus(id, nuevoEstatus, fila) {
 // Navegación de páginas
 export function paginaSiguiente() { currentPage++; renderizarPagina(); }
 export function paginaAnterior() { if (currentPage > 1) { currentPage--; renderizarPagina(); } }
+// Ir a una página específica
+// Función para ir a una página específica
+function irAPagina() {
+  const paginaInput = document.getElementById("pagina-input").value.trim();
+  const paginaNumero = parseInt(paginaInput, 10);  // Convertir a número
+
+  // Si el campo está vacío, no hacemos nada
+  if (!paginaInput) {
+    return; // No se hace nada si el campo está vacío
+  }
+
+  // Verificar si el número ingresado es válido y está dentro del rango de páginas
+  const totalPaginas = Math.ceil(nodosCache.length / limit);
+
+  if (!isNaN(paginaNumero) && paginaNumero >= 1 && paginaNumero <= totalPaginas) {
+    currentPage = paginaNumero;
+    renderizarPagina();
+  } else {
+    alert("Número de página inválido");
+  }
+
+  // Limpiar el campo de entrada después de usarlo
+  document.getElementById("pagina-input").value = "";
+}
 
 // Aplicar filtros
 export function aplicarFiltros() {
@@ -157,3 +185,9 @@ export function aplicarFiltros() {
   currentPage = 1;
   renderizarPagina();
 }
+
+// Hacer las funciones globales
+window.irAPagina=irAPagina();
+window.paginaSiguiente = paginaSiguiente;
+window.paginaAnterior = paginaAnterior;
+window.aplicarFiltros = aplicarFiltros;

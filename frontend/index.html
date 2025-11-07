@@ -90,14 +90,21 @@
             </table>
           </div>
 
-          <!-- Paginación -->
-          <div id="pagina-actual"></div>
-          <div class="paginacion">
-            <button onclick="paginaAnterior()">Anterior</button>
-            <button onclick="paginaSiguiente()">Siguiente</button>
-          </div>
-        </div>
-      </div>
+<!-- Paginación -->
+<div id="pagina-actual"></div>
+<div class="paginacion">
+  <!-- Botones de navegación -->
+  <button onclick="paginaAnterior()">Anterior</button>
+  <button onclick="paginaSiguiente()">Siguiente</button>
+  
+  <!-- Campo para ir a una página específica -->
+  <input type="number" id="pagina-input" placeholder="Ir a página" min="1">
+  <button onclick="irAPagina()">Ir</button>
+
+  <!-- Mostrar la página actual y el total de páginas -->
+  <span id="pagina-actual">Página 1 de 1</span>
+</div>
+
 
       <!-- Vista: Gestión de Equipos -->
       <div id="vista-gestion-equipos" style="display:none;">

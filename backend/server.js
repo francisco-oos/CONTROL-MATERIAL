@@ -187,7 +187,22 @@ app.put("/api/nodos/estatus", (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// ✅ Limpiar todos los nodos de la tabla
+app.delete("/api/nodos/clear", (req, res) => {
+  try {
+    // Corregir la consulta SQL (DELETE en lugar de DELET)
+    const result = db.prepare("DELETE FROM nodos").run();
 
+    if (result.changes === 0) {
+      return res.status(404).json({ message: "No se encontraron nodos para borrar." });
+    }
+
+    res.json({ message: "Todos los nodos han sido eliminados correctamente." });
+  } catch (error) {
+    console.error("❌ Error al eliminar los nodos:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 // --------------------------------------------------
 // ENDPOINT: Actualizar el estatus de un nodo
 // --------------------------------------------------
@@ -195,33 +210,42 @@ app.put("/api/nodos/:id/estatus", (req, res) => {
   const { id } = req.params;
   const { estatus } = req.body;
 
-  // Solo permitir los estatus válidos
-  const estatusValidos = ["Operativo","Dañado","Mantenimiento","Para garantía","En garantía"];
+  const estatusValidos = ["Operativo", "Dañado", "Mantenimiento", "Para garantía", "En garantía"];
   if (!estatusValidos.includes(estatus)) {
     return res.status(400).json({ error: "Estatus inválido" });
   }
-  // Actualizar el nodo y su fecha
-  const query = `
-    UPDATE nodos
-    SET estatus = ?, fecha_actualizacion = datetime('now','localtime')
-    WHERE id = ?
-  `;
-  db.run(query, [estatus, id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    if (this.changes === 0) return res.status(404).json({ error: "Nodo no encontrado" });
 
-    // Traer el nodo actualizado para devolverlo al frontend
-    const queryNodo = `
-      SELECT id, serie, estatus, fecha_actualizacion
-      FROM nodos
+  try {
+    const stmt = db.prepare(`
+      UPDATE nodos
+      SET id_estatus = (
+        SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
+      ),
+      fecha_actualizacion = datetime('now','localtime')
       WHERE id = ?
-    `;
-    db.get(queryNodo, [id], (err2, row) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res.json(row); // Devuelve id, estatus y fecha_actualizacion
-    });
-  });
+    `);
+
+    const result = stmt.run(estatus, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Nodo no encontrado" });
+    }
+
+    const nodo = db.prepare(`
+      SELECT n.id, n.serie, ne.nombre AS estatus, n.fecha_actualizacion
+      FROM nodos n
+      LEFT JOIN nodos_estatus ne ON n.id_estatus = ne.id
+      WHERE n.id = ?
+    `).get(id);
+
+    res.json(nodo);
+
+  } catch (err) {
+    console.error("❌ Error al actualizar estatus:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
+
 // --------------------------------------------------
 // (Próximo paso) Cargar celulares desde CSV
 // --------------------------------------------------
