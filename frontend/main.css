@@ -126,7 +126,8 @@ footer {
 
 /* Contenedor de Vista de Nodos */
 #vista-ver-nodos {
-  width: max-content; /* Ocupa el 100% del espacio disponible en el contenedor */
+  /*width: max-content; /* Ocupa el 100% del espacio disponible en el contenedor */
+   width: 700%; /* Ocupa el 100% del espacio disponible en el contenedor */
   max-width: 1200px; /* Limita el ancho máximo para pantallas grandes */
   margin: 0 auto; /* Centra el contenedor en pantallas grandes */
   padding: 30px;

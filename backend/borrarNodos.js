@@ -18,4 +18,22 @@ async function borrarNodos() {
   }
 }
 
-borrarNodos();
+async function borrarEstatus() {
+  try {
+    const res = await fetch('http://localhost:3001/api/estatus/clear', {
+      method: 'DELETE',
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      console.log('Respuesta del servidor:', data.message);
+    } else {
+      console.error('Error al eliminar nodos:', data);
+    }
+  } catch (error) {
+    console.error('Error al hacer la solicitud:', error);
+  }
+}
+
+borrarEstatus();

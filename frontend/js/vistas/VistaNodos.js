@@ -1,27 +1,31 @@
 // ===============================
 // VistaNodos.js
 // ===============================
-
-
-
 import { API_BASE } from '../../config.js';
 
 let listaTecnologias = [];
-const listaEstatus = [
+let listaEstatus = [
+ { id: 1, nombre: "Tendido" },
   { id: 2, nombre: "Operativo" },
+  { id: 4, nombre: "Robado" },
+  { id: 5, nombre: "Extraviado" },
   { id: 8, nombre: "Dañado" },
   { id: 3, nombre: "Mantenimiento" },
   { id: 6, nombre: "Para garantía" },
-  { id: 7, nombre: "En garantía" }
+  { id: 7, nombre: "En garantía" },
+  { id: 9, nombre: "Pruebas" },
+  { id: 10, nombre: "incautado" }
 ];
 
 const API_NODOS = `${API_BASE}/nodos`;
 const API_TECNOLOGIAS = `${API_BASE}/tecnologias`;
+const API_ESTATUS = `${API_BASE}/estatus`;
 
 let currentPage = 1;
 const limit = 50;
 let currentSerie = "";
 let currentTecnologia = "";
+let currentEstatus = "";
 let nodosCache = []; // Guardamos todos los nodos en memoria
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -33,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 export async function inicializarVistaNodos() {
   await cargarFiltrosTecnologia();
   await cargarTodosNodos();
+  await cargarFiltrosestatus();
   renderizarPagina();
 }
 
@@ -56,6 +61,29 @@ async function cargarFiltrosTecnologia() {
   }
 }
 
+// Cargar estatus para el filtro
+async function cargarFiltrosestatus() {
+  const select = document.getElementById("filtro-estatus");
+  if (!select) return console.warn("No se encontró el elemento #filtro-estatus en el DOM");
+  select.innerHTML = `<option value="">Todas</option>`;
+  try {
+    const res = await fetch(API_ESTATUS);
+    const estatus = await res.json();
+    // Reemplazamos el contenido del array (o reasignamos)
+    listaEstatus = estatus;
+    console.log("Estatus cargados:", listaEstatus);
+    estatus.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.nombre;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error(" Error al cargar Estatus:", err);
+  }
+}
+
+
 
 // Cargar todos los nodos (solo una vez)
 async function cargarTodosNodos() {
@@ -71,11 +99,13 @@ function renderizarPagina() {
   const tbody = document.getElementById("tbody-nodos");
   tbody.innerHTML = "";
 
-  // Aplicar filtros
-  let nodosFiltrados = nodosCache.filter(n => {
-    return (!currentSerie || n.serie.includes(currentSerie)) &&
-           (!currentTecnologia || n.id_tecnologia === Number(currentTecnologia));
-  });
+// En renderizarPagina, incluir filtro por estatus
+let nodosFiltrados = nodosCache.filter(n => {
+  return (!currentSerie || n.serie.includes(currentSerie)) &&
+         (!currentTecnologia || n.id_tecnologia === Number(currentTecnologia)) &&
+         (!currentEstatus || n.id_estatus === Number(currentEstatus));
+});
+
 
   const totalPaginas = Math.ceil(nodosFiltrados.length / limit);
   if (currentPage > totalPaginas) currentPage = totalPaginas || 1;
@@ -121,7 +151,7 @@ function renderizarPagina() {
 
 
 // Actualizar estatus del nodo
-async function actualizarEstatus(id, nuevoEstatus, fila) {
+export async function actualizarEstatus(id, nuevoEstatus, fila) {
   try {
     const res = await fetch(`${API_NODOS}/${id}/estatus`, {
       method: "PUT",
@@ -155,7 +185,7 @@ export function paginaSiguiente() { currentPage++; renderizarPagina(); }
 export function paginaAnterior() { if (currentPage > 1) { currentPage--; renderizarPagina(); } }
 // Ir a una página específica
 // Función para ir a una página específica
-function irAPagina() {
+export function irAPagina() {
   const paginaInput = document.getElementById("pagina-input").value.trim();
   const paginaNumero = parseInt(paginaInput, 10);  // Convertir a número
 
@@ -178,16 +208,21 @@ function irAPagina() {
   document.getElementById("pagina-input").value = "";
 }
 
-// Aplicar filtros
+// Aplicar filtros (arreglado)
 export function aplicarFiltros() {
   currentSerie = document.getElementById("filtro-serie").value.trim();
   currentTecnologia = document.getElementById("filtro-tecnologia").value.trim();
+  // id correcto y paréntesis bien colocados:
+  const estSelect = document.getElementById("filtro-estatus");
+  currentEstatus = estSelect ? estSelect.value.trim() : "";
   currentPage = 1;
   renderizarPagina();
 }
 
+
+
 // Hacer las funciones globales
-window.irAPagina=irAPagina();
 window.paginaSiguiente = paginaSiguiente;
 window.paginaAnterior = paginaAnterior;
 window.aplicarFiltros = aplicarFiltros;
+window.irAPagina=irAPagina;

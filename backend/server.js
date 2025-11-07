@@ -203,6 +203,22 @@ app.delete("/api/nodos/clear", (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// ✅ Limpiar todos los nodos de la tabla
+app.delete("/api/estatus/clear", (req, res) => {
+  try {
+    // Corregir la consulta SQL (DELETE en lugar de DELET)
+    const result = db.prepare("DELETE FROM nodos_estatus").run();
+
+    if (result.changes === 0) {
+      return res.status(404).json({ message: "No se encontraron nodos para borrar." });
+    }
+
+    res.json({ message: "Todos los nodos han sido eliminados correctamente." });
+  } catch (error) {
+    console.error("❌ Error al eliminar los nodos:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 // --------------------------------------------------
 // ENDPOINT: Actualizar el estatus de un nodo
 // --------------------------------------------------
@@ -210,10 +226,14 @@ app.put("/api/nodos/:id/estatus", (req, res) => {
   const { id } = req.params;
   const { estatus } = req.body;
 
-  const estatusValidos = ["Operativo", "Dañado", "Mantenimiento", "Para garantía", "En garantía"];
-  if (!estatusValidos.includes(estatus)) {
-    return res.status(400).json({ error: "Estatus inválido" });
-  }
+ const estatusValido = db.prepare(`
+  SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
+`).get(estatus);
+
+if (!estatusValido) {
+  return res.status(400).json({ error: "Estatus inválido o no encontrado en la base de datos" });
+}
+
 
   try {
     const stmt = db.prepare(`

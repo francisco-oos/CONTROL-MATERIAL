@@ -62,16 +62,21 @@
         <div class="vista-ver-nodos">
           <h2>Listado de Nodos</h2>
 
-          <!-- Filtros de Serie y Tecnología -->
+          <!-- Filtros de Serie , Tecnología y estatus -->
           <div class="filtros">
             <label for="filtro-serie">Serie:</label>
-            <input type="text" id="filtro-serie">
+            <input type="text" id="filtro-serie">    
+            
+          <label for="filtro-tecnologia">Tecnología:
+            <select id="filtro-tecnologia"></select></label>
 
-            <label for="filtro-tecnologia">Tecnología:</label>
-            <select id="filtro-tecnologia"></select>
+            <label for="filtro-estatus">Estatus:
+            <select id="filtro-estatus"></select></label>
+
+
 
             <button class="btn-azul" onclick="aplicarFiltros()">Aplicar filtros</button>
-          </div>
+        </div>  
 
           <!-- Tabla de Nodos -->
           <div class="tabla-scroll">

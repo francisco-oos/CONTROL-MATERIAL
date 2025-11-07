@@ -223,6 +223,8 @@ CREATE TABLE IF NOT EXISTS tendido (
   FOREIGN KEY (id_nodo) REFERENCES nodos(id),
   FOREIGN KEY (id_tipo_tendido) REFERENCES tipo_tendido(id)
 );
+
+
 `);
 
 console.log("✅ Todas las tablas creadas correctamente.");
@@ -255,7 +257,8 @@ INSERT OR IGNORE INTO nodos_estatus (nombre, niveles_permitidos) VALUES
 ('Para Garantía', '1'),
 ('En Garantía', '1'),
 ('Dañado', '1,2'),
-('Pruebas', '1,2');
+('Pruebas', '1,2'),
+('incautado', '1,2');
 
 INSERT OR IGNORE INTO tipo_tendido (nombre) VALUES
 ('Producción'), ('Prueba');
