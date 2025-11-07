@@ -1,0 +1,327 @@
+/* main.css */
+/* --------------------------------------------------
+   Estilos modernos tipo dashboard para Control de Material
+-------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background-color: #f4f6f8;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  color: #333;
+}
+
+/* ---------- HEADER ---------- */
+header {
+  background-color: #004b87;
+  color: white;
+  padding: 15px 25px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* ---------- MAIN LAYOUT ---------- */
+main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ---------- SIDEBAR ---------- */
+aside {
+  width: 230px;
+  background-color: #022d57;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.15);
+}
+
+aside nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 15px;
+}
+
+aside button {
+  background-color: transparent;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  text-align: left;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s;
+}
+
+aside button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.02);
+}
+
+aside button.active {
+  background-color: #007bff;
+  font-weight: bold;
+}
+
+/* ---------- SECTION CONTENT ---------- */
+section {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  background-color: #f4f6f8;
+}
+
+/* ---------- CARDS ---------- */
+.card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #004b87;
+}
+
+.card p {
+  color: #555;
+  font-size: 15px;
+  margin-bottom: 0;
+}
+
+/* ---------- FOOTER ---------- */
+footer {
+  background-color: #004b87;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15);
+}
+/* -------------------- Vista de Nodos -------------------- */
+
+/* Contenedor de Vista de Nodos */
+#vista-ver-nodos {
+  width: max-content; /* Ocupa el 100% del espacio disponible en el contenedor */
+  max-width: 1200px; /* Limita el ancho máximo para pantallas grandes */
+  margin: 0 auto; /* Centra el contenedor en pantallas grandes */
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra para resaltar */
+  overflow:scroll;
+  box-sizing: border-box;
+}
+
+/* Filtros de Serie y Tecnología */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Asegura que los filtros usen todo el espacio */
+}
+
+/* Estilo para las etiquetas dentro de los filtros */
+.filtros label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #004b87;
+}
+
+/* Estilo de los campos de texto y select dentro de los filtros */
+.filtros input,
+.filtros select {
+  width: 48%; /* Los campos de texto y select ocupan el 48% cada uno */
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+/* Botón de aplicar filtros */
+.filtros button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.filtros button:hover {
+  background-color: #005fcc;
+}
+
+/* -------------------- Tabla de Nodos -------------------- */
+
+/* Hacer la tabla más amplia */
+.tabla-scroll {
+  width: 100%; /* Asegura que la tabla ocupe todo el espacio */
+  overflow-x: auto; /* Permite desplazarse horizontalmente */
+  box-sizing: border-box;
+}
+
+#tabla-preview-nodos {
+  width: 100%; /* Asegura que la tabla ocupe todo el ancho */
+  border-collapse: collapse;
+}
+
+#tabla-preview-nodos th,
+#tabla-preview-nodos td {
+  padding: 14px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+#tabla-preview-nodos th {
+  background-color: #004b87;
+  color: white;
+}
+
+/* -------------------- Paginación -------------------- */
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.paginacion button {
+  padding: 12px 20px;
+  background-color: #004b87;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.paginacion button:hover {
+  background-color: #007bff;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+  }
+
+  aside {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 10px 0;
+  }
+
+  aside nav {
+    flex-direction: row;
+    gap: 5px;
+    padding: 0;
+  }
+
+  section {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ajustes para la vista de nodos en dispositivos pequeños */
+  #vista-ver-nodos {
+    padding: 20px; /* Reducir un poco el padding en pantallas más pequeñas */
+    gap: 15px;
+    width: 100%; /* Asegurar que ocupe todo el ancho */
+    max-width: 100%; /* Eliminar el max-width en pantallas pequeñas */
+  }
+
+  .filtros {
+    flex-direction: column;
+    width: 100%; /* Los filtros ocupan todo el ancho en pantallas pequeñas */
+  }
+
+  .filtros input,
+  .filtros select {
+    width: 100%; /* Los filtros ocupan todo el ancho en pantallas pequeñas */
+  }
+}
+
+
+/* -------------------- Paginación -------------------- */
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.paginacion button {
+  padding: 10px 20px;
+  background-color: #004b87;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.paginacion button:hover {
+  background-color: #007bff;
+}
+
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+  }
+
+  aside {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 10px 0;
+  }
+
+  aside nav {
+    flex-direction: row;
+    gap: 5px;
+    padding: 0;
+  }
+
+  section {
+    grid-template-columns: 1fr;
+  }
+}

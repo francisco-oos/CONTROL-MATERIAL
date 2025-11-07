@@ -21,7 +21,7 @@ export const DB_PATH = path.join(
   "BASE DE DATOS",
   "SynologyDrive",
   "control-inventario",
-  "control_inventario.db"
+  "control_material.db"
 */
 //COMPUTADORA EDUARDO
 "C:",
@@ -31,5 +31,5 @@ export const DB_PATH = path.join(
 "dev-Francisco",
 "SynologyDrive",
 "SynologyDrive",
-"control_inventario.db"
+"control_material.db"
 );
