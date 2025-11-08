@@ -54,6 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
           inicializarVistaNodos();
         }
       }
+      // -------------------------
+// VISTA: CARGAR MATERIAL INCAUTADO
+// -------------------------
+else if (view === "vista-cargar-incautados") {
+  const vista = document.getElementById("vista-cargar-incautados");
+  if (vista) vista.style.display = "block";
+}
+
 
       // -------------------------
       // OTRAS VISTAS FUTURAS

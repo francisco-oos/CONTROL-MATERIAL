@@ -22,6 +22,7 @@
         <button data-view="reportes">Reportes</button>
         <button data-view="configuracion">Configuración</button>
         <button data-view="cargar-nodos">Cargar Base de Nodos</button>
+        <button data-view="vista-cargar-incautados">Cargar Base de Nodos Incautados</button>
         <button data-view="ver-nodos">Ver Nodos</button>
         <button data-view="mantenimiento">Mantenimiento</button>
       </nav>
@@ -56,6 +57,21 @@
           </div>
         </div>
       </div>
+
+<div id="vista-cargar-incautados"class="vista" style="display:none;">
+  <h2>Cargar material incautado</h2>
+  <input type="file" id="csvFileIncautados" accept=".csv" />
+  <button id="btn-descargar-formato-incautados">Descargar formato CSV</button>
+
+  <button id="btn-enviar-incautados">🚀 Subir al servidor</button>
+
+  <div id="csv-preview-incautados" style="display:none;">
+    <table id="tabla-preview-incautados" border="1">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
       <!-- Vista de Nodos -->
       <div id="vista-ver-nodos" class="vista" style="display:none;">
@@ -155,7 +171,8 @@
   <!-- Scripts principales -->
   <script type="module" src="js/main.js"></script>
   <script type="module" src="js/vistas/VistaNodos.js"></script>
-  <script type="module" src="js/vistas/cargarNodos.js"></script>
+  <script type="module" src="js/vistas/cargarNodos.js"></script> 
+ <script type="module" src="js/vistas/cargarIncautados.js"></script>
 
 </body>
 </html>

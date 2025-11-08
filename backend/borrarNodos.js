@@ -36,4 +36,7 @@ async function borrarEstatus() {
   }
 }
 
+
+
+
 borrarEstatus();

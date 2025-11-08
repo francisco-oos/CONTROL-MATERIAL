@@ -19,7 +19,6 @@ const db = new Database(DB_PATH);
 // =======================================
 // TABLAS BASE
 // =======================================
-
 db.exec(`
 CREATE TABLE IF NOT EXISTS tecnologia (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,8 +43,8 @@ CREATE TABLE IF NOT EXISTS estatus_chips (
 
 CREATE TABLE IF NOT EXISTS nodos_estatus (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL,
-  niveles_permitidos TEXT -- Ejemplo: "1,2"
+  nombre TEXT UNIQUE NOT NULL,
+  niveles_permitidos TEXT
 );
 
 CREATE TABLE IF NOT EXISTS tipo_tendido (
@@ -57,7 +56,6 @@ CREATE TABLE IF NOT EXISTS tipo_tendido (
 // =======================================
 // TABLAS PRINCIPALES
 // =======================================
-
 db.exec(`
 CREATE TABLE IF NOT EXISTS usuario (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -143,7 +141,6 @@ CREATE TABLE IF NOT EXISTS asignacion_equipos (
 // =======================================
 // TABLAS ESPECIALES
 // =======================================
-
 db.exec(`
 CREATE TABLE IF NOT EXISTS nodos_robados_extraviados (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,19 +174,53 @@ CREATE TABLE IF NOT EXISTS incautado (
   id_nodo INTEGER,
   id_tecnologia INTEGER,
   id_estatus_nodo INTEGER,
+
+  -- Datos de ubicación
   linea TEXT,
   estaca TEXT,
-  id_archivo_pdf INTEGER,
-  id_archivo_word INTEGER,
-  id_reporte1 INTEGER,
-  id_archivo_actualizacion_pdf INTEGER,
-  id_archivo_actualizacion_word INTEGER,
+  punto TEXT,
+
+  -- Identificación del equipo
+  equipo TEXT,
+  serie TEXT,
+
+  -- Estado y fechas
+  status TEXT,
   fecha_incautado TEXT,
   fecha_recuperado TEXT,
+
+  -- Reportes y cabos responsables
+  nombre_reporte_incautado TEXT,
+  id_archivo_reporte_incautado INTEGER,
+  nombre_reporte_recuperado TEXT,
+  id_archivo_reporte_recuperado INTEGER,
+
+  -- Archivo general de respaldo (PDF/Word)
+  id_archivo_pdf INTEGER,
+  id_archivo_word INTEGER,
+
+  -- Propietario o información adicional
+  hizo_reporte TEXT,
   propietario TEXT,
+  telefono TEXT,
   localidad TEXT,
-  contacto TEXT,
-  FOREIGN KEY (id_nodo) REFERENCES nodos(id)
+  municipio TEXT,
+  comentario TEXT,
+  nota_informativa TEXT,
+
+  -- Archivos de actualización
+  id_archivo_actualizacion_pdf INTEGER,
+  id_archivo_actualizacion_word INTEGER,
+
+  FOREIGN KEY (id_nodo) REFERENCES nodos(id),
+  FOREIGN KEY (id_tecnologia) REFERENCES tecnologia(id),
+  FOREIGN KEY (id_estatus_nodo) REFERENCES nodos_estatus(id),
+  FOREIGN KEY (id_archivo_pdf) REFERENCES archivos(id),
+  FOREIGN KEY (id_archivo_word) REFERENCES archivos(id),
+  FOREIGN KEY (id_archivo_reporte_incautado) REFERENCES archivos(id),
+  FOREIGN KEY (id_archivo_reporte_recuperado) REFERENCES archivos(id),
+  FOREIGN KEY (id_archivo_actualizacion_pdf) REFERENCES archivos(id),
+  FOREIGN KEY (id_archivo_actualizacion_word) REFERENCES archivos(id)
 );
 
 CREATE TABLE IF NOT EXISTS mantenimiento (
@@ -223,8 +254,6 @@ CREATE TABLE IF NOT EXISTS tendido (
   FOREIGN KEY (id_nodo) REFERENCES nodos(id),
   FOREIGN KEY (id_tipo_tendido) REFERENCES tipo_tendido(id)
 );
-
-
 `);
 
 console.log("✅ Todas las tablas creadas correctamente.");
@@ -258,10 +287,15 @@ INSERT OR IGNORE INTO nodos_estatus (nombre, niveles_permitidos) VALUES
 ('En Garantía', '1'),
 ('Dañado', '1,2'),
 ('Pruebas', '1,2'),
-('incautado', '1,2');
+('Incautado', '1,2'),
+('Recuperado', '1,2');
 
 INSERT OR IGNORE INTO tipo_tendido (nombre) VALUES
 ('Producción'), ('Prueba');
+
+-- Asegurar índice único para integridad de estatus
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nodos_estatus_nombre
+ON nodos_estatus (nombre);
 `);
 
 console.log("✅ Datos iniciales insertados correctamente.");

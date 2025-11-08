@@ -162,7 +162,7 @@ app.get("/api/nodos", (req, res) => {
   }
 });
 
-// ✅ Editar estatus de un nodo por ID o serie
+//  Editar estatus de un nodo por ID o serie
 app.put("/api/nodos/estatus", (req, res) => {
   try {
     const { id, serie, estatus } = req.body;
@@ -384,6 +384,114 @@ app.get("/api/handy", (req, res) => {
   }
 });
 
+// --------------------------------------------------
+// 📥 Cargar material incautado desde CSV
+// --------------------------------------------------
+app.post("/api/cargar-incautados", upload.single("file"), async (req, res) => {
+  const filePath = req.file.path;
+  const errores = [];
+  const resultados = [];
+
+  try {
+    const fileStream = fs.createReadStream(filePath).pipe(csv());
+    for await (const row of fileStream) {
+      const serie = (row.serie || row.SERIE || "").trim();
+      const estatus = (row.estatus || row.ESTATUS || "").trim();
+      const fecha_incautado = (row.fecha_incautado || "").trim();
+      const propietario = (row.propietario || "").trim();
+      const localidad = (row.localidad || "").trim();
+      const contacto = (row.contacto || "").trim();
+
+      if (!serie) continue;
+
+      resultados.push({
+        serie,
+        estatus,
+        fecha_incautado,
+        propietario,
+        localidad,
+        contacto,
+      });
+    }
+
+    // 🧭 Mapear serie → id_nodo
+    const nodos = db
+      .prepare("SELECT id, serie FROM nodos")
+      .all()
+      .reduce((acc, n) => {
+        acc[n.serie] = n.id;
+        return acc;
+      }, {});
+
+    const estatusBD = db
+      .prepare("SELECT id, LOWER(nombre) AS nombre FROM nodos_estatus")
+      .all()
+      .reduce((acc, e) => {
+        acc[e.nombre] = e.id;
+        return acc;
+      }, {});
+
+    const insertIncautado = db.prepare(`
+      INSERT INTO incautado (
+        id_nodo, id_tecnologia, id_estatus_nodo,
+        fecha_incautado, propietario, localidad, contacto
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    let insertados = 0;
+    db.transaction(() => {
+  for (const r of resultados) {
+    const idNodo = nodos[r.serie];
+    const idEstatus = estatusBD[r.estatus.toLowerCase()] || null;
+
+    if (!idNodo) {
+      errores.push({ motivo: "Serie no encontrada", ...r });
+      continue;
+    }
+
+    if (!idEstatus) {
+      errores.push({ motivo: "Estatus inválido", ...r });
+      continue;
+    }
+
+    // Obtener id_tecnologia del nodo
+    const nodo = db.prepare("SELECT id_tecnologia FROM nodos WHERE id = ?").get(idNodo);
+
+    // 🧩 Evitar duplicados en la tabla incautado
+    const existeIncautado = db
+      .prepare("SELECT COUNT(*) AS total FROM incautado WHERE id_nodo = ?")
+      .get(idNodo).total;
+
+    if (existeIncautado > 0) {
+      errores.push({ motivo: "Nodo ya registrado como incautado", ...r });
+      continue;
+    }
+
+    // ✅ Insertar nuevo registro
+    insertIncautado.run(
+      idNodo,
+      nodo.id_tecnologia,
+      idEstatus,
+      r.fecha_incautado || new Date().toISOString().split("T")[0],
+      r.propietario || "",
+      r.localidad || "",
+      r.contacto || ""
+    );
+
+    insertados++;
+  }
+})();
+    fs.unlinkSync(filePath);
+
+    res.json({
+      message: `✅ ${insertados} registros incautados insertados correctamente.`,
+      errores,
+    });
+  } catch (error) {
+    console.error("❌ Error al procesar incautados:", error);
+    res.status(500).json({ error: "Error al procesar el archivo CSV." });
+  }
+});
 
 
 app.listen(PORT, () => {
