@@ -10,34 +10,43 @@ $(document).ready(() => {
   const tableHead = $("#tabla-preview-incautados thead");
   const tableBody = $("#tabla-preview-incautados tbody");
 
-  // 📂 1️⃣ Vista previa del archivo CSV
-  fileInput.on("change", () => {
-    const file = fileInput[0].files[0];
-    if (!file) return;
+// 📂 1️⃣ Vista previa del archivo CSV
+fileInput.on("change", () => {
+  const file = fileInput[0].files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result.trim();
-      if (!text) return alert("⚠️ El archivo está vacío o no es válido.");
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const text = event.target.result.trim();
+    if (!text) {
+      alert("⚠️ El archivo está vacío o no es válido.");
+      return;
+    }
 
-      const rows = text.split("\n").map((r) => r.split(","));
-      const headers = rows.shift();
+    const rows = text.split("\n").map((r) => r.split(","));
+    const headers = rows.shift();
 
-      // Crear encabezados dinámicos
-      tableHead.html("<tr>" + headers.map(h => `<th>${h.trim()}</th>`).join("") + "</tr>");
-      tableBody.empty();
+    if (rows.length === 0) {
+      alert("⚠️ El archivo no contiene datos.");
+      return;
+    }
 
-      // Crear filas
-      rows.forEach((row) => {
-        const cols = row.map((c) => `<td>${c.trim()}</td>`).join("");
-        tableBody.append(`<tr>${cols}</tr>`);
-      });
+    // Crear encabezados dinámicos
+    tableHead.html("<tr>" + headers.map(h => `<th>${h.trim()}</th>`).join("") + "</tr>");
+    tableBody.empty();
 
-      preview.show();
-    };
+    // Crear filas
+    rows.forEach((row) => {
+      const cols = row.map((c) => `<td>${c.trim()}</td>`).join("");
+      tableBody.append(`<tr>${cols}</tr>`);
+    });
 
-    reader.readAsText(file);
-  });
+    preview.show();
+  };
+
+  reader.readAsText(file);
+});
+
 
 // 📥 2️⃣ Descargar formato CSV
 $("#btn-descargar-formato-incautados").on("click", () => {
@@ -64,32 +73,44 @@ const headers = [
   URL.revokeObjectURL(url);
 });
   // 🚀 3️⃣ Enviar CSV al servidor
-  $("#btn-enviar-incautados").on("click", async () => {
-    const file = fileInput[0].files[0];
-    if (!file) return alert("⚠️ Selecciona un archivo CSV primero.");
+$("#btn-enviar-incautados").on("click", async () => {
+  const file = fileInput[0].files[0];
+  if (!file) return alert("Selecciona un archivo CSV primero.");
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    try {
-      const response = await fetch(`${API_BASE}/cargar-incautados`, {
-        method: "POST",
-        body: formData,
-      });
+  try {
+    const response = await fetch(`${API_BASE}/cargar-incautados`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
-        alert(data.message || "✅ Carga completada correctamente.");
-        if (data.errores?.length) {
-          console.warn("Registros no válidos:", data.errores);
-        }
-      } else {
-        alert(`❌ Error del servidor: ${data.error || "Error desconocido."}`);
+    if (response.ok) {
+      alert(data.message || "Carga completada correctamente.");
+      
+      // Mostrar los errores
+      if (data.errores && data.errores.length > 0) {
+        const erroresList = data.errores.map(e => `<li>${e.motivo} - ${e.equipo} (Serie: ${e.serie})</li>`).join("");
+        $("#errores-list").html(erroresList);
+        $("#errores-container").show(); // Mostrar el contenedor de errores
       }
-    } catch (error) {
-      console.error("❌ Error al enviar el archivo:", error);
-      alert("❌ Error al conectar con el servidor.");
+
+      // Mostrar los duplicados
+      if (data.duplicados && data.duplicados.length > 0) {
+        const duplicadosList = data.duplicados.map(d => `<li>${d.motivo} - Serie: ${d.serie} (Equipo: ${d.equipo})</li>`).join("");
+        $("#duplicados-list").html(duplicadosList);
+        $("#duplicados-container").show(); // Mostrar el contenedor de duplicados
+      }
+
+    } else {
+      alert(`Error del servidor: ${data.error || "Error desconocido."}`);
     }
-  });
+  } catch (error) {
+    console.error("Error al enviar el archivo:", error);
+    alert("Error al conectar con el servidor.");
+  }
+});
 });

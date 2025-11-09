@@ -25,6 +25,7 @@
         <button data-view="vista-cargar-incautados">Cargar Base de Nodos Incautados</button>
         <button data-view="ver-nodos">Ver Nodos</button>
         <button data-view="mantenimiento">Mantenimiento</button>
+        <button data-view="vista-ver-incautados">Incautados</button>
       </nav>
     </aside>
 
@@ -58,43 +59,39 @@
         </div>
       </div>
 
-<div id="vista-cargar-incautados"class="vista" style="display:none;">
-  <h2>Cargar material incautado</h2>
-  <input type="file" id="csvFileIncautados" accept=".csv" />
-  <button id="btn-descargar-formato-incautados">Descargar formato CSV</button>
+      <!-- Vista: Cargar Incautados -->
+      <div id="vista-cargar-incautados" class="vista" style="display:none;">
+        <h2>Cargar material incautado</h2>
+        <input type="file" id="csvFileIncautados" accept=".csv" />
+        <button id="btn-descargar-formato-incautados">Descargar formato CSV</button>
+        <button id="btn-enviar-incautados">🚀 Subir al servidor</button>
 
-  <button id="btn-enviar-incautados">🚀 Subir al servidor</button>
+        <div id="csv-preview-incautados" style="display:none;">
+          <table id="tabla-preview-incautados" border="1">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
 
-  <div id="csv-preview-incautados" style="display:none;">
-    <table id="tabla-preview-incautados" border="1">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-
-      <!-- Vista de Nodos -->
+      <!-- Vista: Ver Nodos -->
       <div id="vista-ver-nodos" class="vista" style="display:none;">
         <div class="vista-ver-nodos">
           <h2>Listado de Nodos</h2>
 
-          <!-- Filtros de Serie , Tecnología y estatus -->
           <div class="filtros">
             <label for="filtro-serie">Serie:</label>
             <input type="text" id="filtro-serie">    
             
-          <label for="filtro-tecnologia">Tecnología:
-            <select id="filtro-tecnologia"></select></label>
+            <label for="filtro-tecnologia">Tecnología:
+              <select id="filtro-tecnologia"></select></label>
 
             <label for="filtro-estatus">Estatus:
-            <select id="filtro-estatus"></select></label>
-
-
+              <select id="filtro-estatus"></select></label>
 
             <button class="btn-azul" onclick="aplicarFiltros()">Aplicar filtros</button>
-        </div>  
+          </div>  
 
-          <!-- Tabla de Nodos -->
           <div class="tabla-scroll">
             <table id="tabla-preview-nodos">
               <thead>
@@ -111,54 +108,63 @@
             </table>
           </div>
 
-<!-- Paginación -->
-<div id="pagina-actual"></div>
-<div class="paginacion">
-  <!-- Botones de navegación -->
-  <button onclick="paginaAnterior()">Anterior</button>
-  <button onclick="paginaSiguiente()">Siguiente</button>
-  
-  <!-- Campo para ir a una página específica -->
-  <input type="number" id="pagina-input" placeholder="Ir a página" min="1">
-  <button onclick="irAPagina()">Ir</button>
-
-  <!-- Mostrar la página actual y el total de páginas -->
-  <span id="pagina-actual">Página 1 de 1</span>
-</div>
-
-
-      <!-- Vista: Gestión de Equipos -->
-      <div id="vista-gestion-equipos" style="display:none;">
-        <div class="vista-ver-nodos">
-        <h2>Gestión de Equipos</h2>
-        <div id="filtroEquipos">
-          <label for="tipoEquipo">Filtrar por tipo de equipo:</label>
-          <select id="tipoEquipo" name="tipoEquipo">
-            <option value="">Seleccionar Tipo</option>
-            <option value="telefonos">Teléfonos</option>
-            <option value="chips_telefono">Chips</option>
-            <option value="radios_handy">Radios Handy</option>
-          </select>
-          <button id="btnFiltrarEquipos">Filtrar</button>
-        </div>
-
-        <div id="detallesEquipo" style="display:none;">
-          <h3>Detalles del Equipo</h3>
-          <p id="detallesNombre"></p>
-          <p id="detallesEstatus"></p>
-          <p id="detallesAsignadoA"></p>
-
-          <div id="comentariosEquipo" style="margin-top:20px;">
-            <h4>Comentarios:</h4>
-            <ul id="comentariosList"></ul>
+          <div class="paginacion">
+            <button onclick="paginaAnterior()">Anterior</button>
+            <button onclick="paginaSiguiente()">Siguiente</button>
+            <input type="number" id="pagina-input" placeholder="Ir a página" min="1">
+            <button onclick="irAPagina()">Ir</button>
+            <span id="pagina-actual">Página 1 de 1</span>
           </div>
-
-          <label for="nuevoComentario">Agregar Comentario:</label><br>
-          <textarea id="nuevoComentario" rows="4" cols="50"></textarea><br>
-          <button id="btnAgregarComentario">Agregar Comentario</button>
         </div>
       </div>
-</div>
+
+<div id="vista-ver-incautados" class="vista" style="display:none;">
+  <div class="vista-ver-incautados">
+    <h2>Material Incautado</h2>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      <label for="filtro-serie">Serie:</label>
+      <input type="text" id="filtro-serie" placeholder="Buscar serie...">
+
+      <label for="filtro-tecnologia">Tecnología:</label>
+      <select id="filtro-tecnologia"></select>
+
+      <label for="filtro-estatus">Estatus:</label>
+      <select id="filtro-estatus"></select>
+
+      <button class="btn-azul" onclick="aplicarFiltros()">Aplicar filtros</button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="tabla-scroll">
+      <table id="tabla-incautados">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nodo</th>
+            <th>Tecnología</th>
+            <th>Estatus</th>
+            <th>Fecha Incautado</th>
+            <th>Cambiar Estatus</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-incautados"></tbody>
+      </table>
+    </div>
+
+          <!-- Paginación -->
+          <div class="paginacion">
+            <button onclick="paginaAnterior()">Anterior</button>
+            <button onclick="paginaSiguiente()">Siguiente</button>
+            <input type="number" id="pagina-input" placeholder="Ir a página" min="1">
+            <button onclick="irAPagina()">Ir</button>
+            <span id="pagina-actual">Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
+      <!-- 🔚 Fin de Vista Incautados -->
+
     </section>
   </main>
 
@@ -171,8 +177,8 @@
   <!-- Scripts principales -->
   <script type="module" src="js/main.js"></script>
   <script type="module" src="js/vistas/VistaNodos.js"></script>
-  <script type="module" src="js/vistas/cargarNodos.js"></script> 
- <script type="module" src="js/vistas/cargarIncautados.js"></script>
+  <script type="module" src="js/vistas/cargarNodos.js"></script>
+  <script type="module" src="js/vistas/cargarIncautados.js"></script>
 
 </body>
 </html>

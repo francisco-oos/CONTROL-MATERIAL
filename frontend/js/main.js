@@ -5,6 +5,7 @@
 
 // Importar la función de inicialización de la vista de nodos
 import { inicializarVistaNodos } from './vistas/VistaNodos.js';
+import { inicializarVistaIncautados } from './vistas/VistaIncautados.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const buttons = document.querySelectorAll("aside nav button"); // botones del menú lateral
@@ -52,6 +53,17 @@ document.addEventListener("DOMContentLoaded", () => {
           vista.style.display = "block";
           // Inicializar la vista de nodos
           inicializarVistaNodos();
+        }
+      }
+            // -------------------------
+      // VISTA: VER incautados
+      // -------------------------
+      else if (view === "vista-ver-incautados") {
+        const vista = document.getElementById("vista-ver-incautados");
+        if (vista) {
+          vista.style.display = "block";
+          // Inicializar la vista de nodos
+          inicializarVistaIncautados();
         }
       }
       // -------------------------

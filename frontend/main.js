@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const view = btn.dataset.view;
 
-      // --- 🔹 Vista especial: Cargar Base de Nodos ---
+      // --- Vista especial: Cargar Base de Nodos ---
       if (view === "cargar-nodos") {
         // Ocultar cualquier vista previa de nodos
         const vistaCargar = document.getElementById("vista-cargar-nodos");
@@ -84,11 +84,35 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // --- 🔹 Resto de vistas comunes ---
+      // --- Vista especial: Incautados ---
+      if (view === "incautados") {
+        // Cargar el script de la vista incautados
+        import('./js/vistas/VistaIncautados.js').then(module => {
+          // Llamar a la función para inicializar la vista de Incautados
+          if (typeof module.inicializarVistaIncautados === 'function') {
+            module.inicializarVistaIncautados();
+          }
+        }).catch(error => {
+          console.error("Error al cargar la vista de Incautados:", error);
+        });
+
+        // Mostrar el contenido relacionado a los incautados
+        const vistaIncautados = document.getElementById("vista-incautados");
+        vistaIncautados.style.display = "block";
+        content.innerHTML = "";
+        content.appendChild(vistaIncautados);
+        return;
+      }
+
+      // --- Resto de vistas comunes ---
       const html = views[view];
       if (html) {
-        // Si es una vista estándar
+        // Si es una vista estándar, muestra el contenido
         content.innerHTML = html;
+
+        // Oculta la vista de incautados si estaba activa
+        const vistaIncautados = document.getElementById("vista-incautados");
+        if (vistaIncautados) vistaIncautados.style.display = "none";
 
         // Oculta la vista de carga de nodos si estaba activa
         const vistaCargar = document.getElementById("vista-cargar-nodos");

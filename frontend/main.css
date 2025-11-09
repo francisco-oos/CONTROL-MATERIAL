@@ -125,7 +125,7 @@ footer {
 /* -------------------- Vista de Nodos -------------------- */
 
 /* Contenedor de Vista de Nodos */
-#vista-ver-nodos {
+#vista-ver-nodos,#vista-ver-incautados{
   /*width: max-content; /* Ocupa el 100% del espacio disponible en el contenedor */
    width: 700%; /* Ocupa el 100% del espacio disponible en el contenedor */
   max-width: 1200px; /* Limita el ancho máximo para pantallas grandes */
@@ -262,7 +262,7 @@ footer {
   }
 
   /* Ajustes para la vista de nodos en dispositivos pequeños */
-  #vista-ver-nodos {
+  #vista-ver-nodos,#vista-ver-incautados {
     padding: 20px; /* Reducir un poco el padding en pantallas más pequeñas */
     gap: 15px;
     width: 100%; /* Asegurar que ocupe todo el ancho */

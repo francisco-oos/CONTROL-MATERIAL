@@ -267,7 +267,7 @@ console.log("✅ Todas las tablas creadas correctamente.");
 // =======================================
 db.exec(`
 INSERT OR IGNORE INTO tecnologia (nombre) VALUES
-('Inova Analógico'), ('Inova Digital'), ('Sercel AFU'), ('Sercel DFU');
+('Inova Analógico'), ('Inova Digital'), ('Sercel AFU'), ('Sercel DFU'),('Geofono');
 
 INSERT OR IGNORE INTO permiso (perfil, nivel) VALUES
 ('Administrador', 1),

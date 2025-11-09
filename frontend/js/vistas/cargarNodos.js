@@ -2,7 +2,7 @@
 // --------------------------------------------------
 // Vista para cargar la base de nodos desde CSV
 // --------------------------------------------------
-// ⚠️ Nota: API_BASE se obtiene desde config.js (NO se vuelve a declarar aquí)
+// Nota: API_BASE se obtiene desde config.js (NO se vuelve a declarar aquí)
 import { API_BASE } from '../../config.js';
 
 $(document).ready(() => {
@@ -12,7 +12,7 @@ $(document).ready(() => {
   const tableBody = $("#tabla-preview-nodos tbody");
 
   // ==================================================
-  // 📂 1️⃣ Vista previa automática del archivo CSV
+  //Vista previa automática del archivo CSV
   // ==================================================
   fileInput.on("change", () => {
     const file = fileInput[0].files[0];
@@ -23,7 +23,7 @@ $(document).ready(() => {
     reader.onload = (event) => {
       const text = event.target.result.trim();
 
-      if (!text) return alert("⚠️ El archivo está vacío o no es válido.");
+      if (!text) return alert(" El archivo está vacío o no es válido.");
 
       // Separar filas y columnas
       const rows = text.split("\n").map((r) => r.split(","));
@@ -49,11 +49,11 @@ $(document).ready(() => {
   });
 
   // ==================================================
-  // 🚀 2️⃣ Enviar CSV al servidor para carga en la base
+  //  Enviar CSV al servidor para carga en la base
   // ==================================================
   $("#btn-enviar-nodos").on("click", async () => {
     const file = fileInput[0].files[0];
-    if (!file) return alert("⚠️ Selecciona un archivo CSV primero.");
+    if (!file) return alert("Selecciona un archivo CSV primero.");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -71,11 +71,11 @@ $(document).ready(() => {
       if (response.ok) {
         alert(data.message || "✅ Carga completada correctamente.");
       } else {
-        alert(`❌ Error del servidor: ${data.error || "Error desconocido."}`);
+        alert(`Error del servidor: ${data.error || "Error desconocido."}`);
       }
     } catch (error) {
-      console.error("❌ Error al enviar el archivo:", error);
-      alert("❌ Error al conectar con el servidor.");
+      console.error("Error al enviar el archivo:", error);
+      alert("Error al conectar con el servidor.");
     }
   });
 });

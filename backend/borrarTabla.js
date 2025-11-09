@@ -4,7 +4,7 @@ import { DB_PATH } from "./config.js"; // 🧩 Ruta de la base de datos
 // Crear conexión
 const db = new Database(DB_PATH);
 
-// Eliminar la tabla si ya existe
+/*/ Eliminar la tabla si ya existe
 db.exec(`DROP TABLE IF EXISTS incautado;`);
 
 // Crear la tabla con los nuevos campos
@@ -70,3 +70,16 @@ db.exec(`
 
 db.close();
 console.log("✅ Tabla 'incautado' recreada y estatus 'Recuperado' agregado (si no existía).");
+*/
+try {
+  db.prepare(`
+    INSERT OR IGNORE INTO tecnologia (nombre)
+    VALUES ('Geófono');
+  `).run();
+
+  console.log("✅ Tecnología 'Geófono' agregada correctamente (si no existía).");
+} catch (err) {
+  console.error("❌ Error al agregar la tecnología:", err);
+} finally {
+  db.close();
+}

@@ -385,39 +385,42 @@ app.get("/api/handy", (req, res) => {
 });
 
 // --------------------------------------------------
-// 📥 Cargar material incautado desde CSV
-// (usa id_tecnologia directamente desde la tabla nodos)
+// 📥 Cargar material incautado desde CSV (versión con control de duplicados)
 // --------------------------------------------------
 app.post("/api/cargar-incautados", upload.single("file"), async (req, res) => {
   const filePath = req.file.path;
   const errores = [];
+  const duplicados = []; // Array para almacenar los duplicados
   const resultados = [];
 
   try {
     const fileStream = fs.createReadStream(filePath).pipe(csv());
-    for await (const row of fileStream) {
-      const serie = (row.serie || row.SERIE || "").trim();
-      const estatus = (row.estatus || row.ESTATUS || "").trim();
-      const fecha_incautado = (row.fecha_incautado || row["FECHA INCAUTADO"] || "").trim();
-      const propietario = (row.propietario || row.PROPIETARIO || "").trim();
-      const localidad = (row.localidad || row.LOCALIDAD || "").trim();
-      const contacto = (row.contacto || row["CONTACTO"] || row["TELEFONO"] || "").trim();
-      const linea = (row.linea || row.LINEA || "").trim();
-      const estaca = (row.estaca || row.ESTACA || "").trim();
-      const punto = (row.punto || row.PUNTO || "").trim();
-      const latitud = parseFloat(row.latitud || row.LATITUD || 0) || null;
-      const longitud = parseFloat(row.longitud || row.LONGITUD || 0) || null;
-      const altitud = parseFloat(row.altitud || row.ALTITUD || 0) || null;
 
-      if (!serie) continue;
+    for await (const row of fileStream) {
+      const equipo = (row.equipo || row.EQUIPO || "").trim();
+      const serie = (row.serie || row.SERIE || "").trim();
+      const estatus = (row.estatus || row.ESTATUS || "").trim().toLowerCase();
+      const fecha_incautado = (row["FECHA INCAUTADO"] || "").trim();
+      const propietario = (row.PROPIETARIO || "").trim();
+      const localidad = (row.LOCALIDAD || "").trim();
+      const telefono = (row.TELEFONO || "").trim();
+      const linea = (row.LINEA || "").trim();
+      const estaca = (row.ESTACA || "").trim();
+      const punto = (row.PUNTO || "").trim();
+      const latitud = parseFloat(row.LATITUD || 0) || null;
+      const longitud = parseFloat(row.LONGITUD || 0) || null;
+      const altitud = parseFloat(row.ALTITUD || 0) || null;
+
+      if (!equipo) continue;
 
       resultados.push({
+        equipo,
         serie,
         estatus,
         fecha_incautado,
         propietario,
         localidad,
-        contacto,
+        telefono,
         linea,
         estaca,
         punto,
@@ -427,122 +430,146 @@ app.post("/api/cargar-incautados", upload.single("file"), async (req, res) => {
       });
     }
 
-    // 🧭 Mapear serie → id_nodo
-    const nodos = db
-      .prepare("SELECT id, serie FROM nodos")
-      .all()
-      .reduce((acc, n) => {
-        acc[n.serie] = n.id;
-        return acc;
-      }, {});
+    // 🔍 Mapeos base
+    const nodos = db.prepare("SELECT id, serie, id_tecnologia FROM nodos").all();
+    const nodosPorSerie = Object.fromEntries(nodos.map(n => [n.serie, n]));
 
-    // 🧭 Mapear estatus → id_estatus
-    const estatusBD = db
-      .prepare("SELECT id, LOWER(nombre) AS nombre FROM nodos_estatus")
-      .all()
-      .reduce((acc, e) => {
-        acc[e.nombre] = e.id;
-        return acc;
-      }, {});
+    const estatusBD = db.prepare("SELECT id, LOWER(nombre) AS nombre FROM nodos_estatus").all();
+    const estatusMap = Object.fromEntries(estatusBD.map(e => [e.nombre, e.id]));
 
-    // 🧱 Preparar queries
+    const tecnologiasBD = db.prepare("SELECT id, LOWER(nombre) AS nombre FROM tecnologia").all();
+    const tecnologiasMap = Object.fromEntries(tecnologiasBD.map(t => [t.nombre, t.id]));
+
+    // ⚙️ Consultas preparadas
     const insertIncautado = db.prepare(`
       INSERT INTO incautado (
         id_nodo, id_tecnologia, id_estatus_nodo,
         linea, estaca, punto, latitud, longitud, altitud,
+        equipo, serie, status,
         fecha_incautado, propietario, localidad, telefono
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const deleteIncautado = db.prepare(`DELETE FROM incautado WHERE id_nodo = ?`);
     const updateEstatusNodo = db.prepare(`
-      UPDATE nodos SET id_estatus = ?, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = ?
+      UPDATE nodos
+      SET id_estatus = ?, fecha_actualizacion = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    const existeRegistro = db.prepare(`
+      SELECT COUNT(*) AS total
+      FROM incautado
+      WHERE linea = ? AND estaca = ? AND id_nodo = ? 
+        AND id_estatus_nodo = ? AND fecha_incautado = ?
     `);
 
     let insertados = 0;
 
-    // 🧩 Transacción principal
     db.transaction(() => {
       for (const r of resultados) {
-        const idNodo = nodos[r.serie];
-        if (!idNodo) {
-          errores.push({ motivo: "Serie no encontrada", ...r });
-          continue;
+        const equipoLower = r.equipo.toLowerCase();
+        const estatusLower = r.estatus || "incautado";
+
+        let idNodo = null;
+        let idTecnologia = null;
+
+        // 🧭 Caso especial: geófono
+        if (equipoLower.includes("geofono")) {
+          idNodo = null;
+          idTecnologia = tecnologiasMap["geófono"] || tecnologiasMap["geofono"] || null;
+          if (!idTecnologia) {
+            errores.push({ motivo: "Tecnología 'Geófono' no encontrada", ...r });
+            continue;
+          }
+        } else {
+          // Buscar nodo por serie
+          const nodo = nodosPorSerie[r.serie];
+          if (!nodo) {
+            errores.push({ motivo: "Serie no encontrada", ...r });
+            continue;
+          }
+          idNodo = nodo.id;
+          idTecnologia = nodo.id_tecnologia;
         }
 
-        // Obtener id_tecnologia directamente del nodo
-        const nodo = db.prepare("SELECT id_tecnologia FROM nodos WHERE id = ?").get(idNodo);
-        if (!nodo || !nodo.id_tecnologia) {
-          errores.push({ motivo: "Nodo sin tecnología asociada", ...r });
-          continue;
-        }
-
-        // Determinar estatus destino
-        const estatusLower = r.estatus.toLowerCase();
-        let idEstatusNodo = estatusBD[estatusLower] || null;
+        // 🧩 Determinar estatus
+        const idEstatusNodo = estatusMap[estatusLower];
         if (!idEstatusNodo) {
-          errores.push({ motivo: "Estatus inválido", ...r });
+          errores.push({ motivo: "Estatus no válido", ...r });
           continue;
         }
 
-        // 🟡 Si es “recuperado”, cambia a “operativo”
-        if (estatusLower === "recuperado") {
-          idEstatusNodo = estatusBD["operativo"];
-          deleteIncautado.run(idNodo); // eliminar si existía
+        const fechaFinal = r.fecha_incautado || new Date().toISOString().split("T")[0];
+
+        // 🧱 Verificar duplicado (clave combinada)
+        const existe = existeRegistro.get(r.linea, r.estaca, idNodo, idEstatusNodo, fechaFinal);
+        if (existe.total > 0) {
+          duplicados.push({
+            motivo: "Registro duplicado",
+            linea: r.linea,
+            estaca: r.estaca,
+            id_nodo: idNodo,
+            id_estatus: idEstatusNodo,
+            fecha_incautado: fechaFinal,
+            serie: r.serie,
+            equipo: r.equipo
+          });
+          continue;
         }
 
-        // 🔄 Actualizar estatus del nodo
-        updateEstatusNodo.run(idEstatusNodo, idNodo);
+        // 🟢 Insertar en incautado
+        insertIncautado.run(
+          idNodo,
+          idTecnologia,
+          idEstatusNodo,
+          r.linea,
+          r.estaca,
+          r.punto,
+          r.latitud,
+          r.longitud,
+          r.altitud,
+          r.equipo,
+          r.serie,
+          r.estatus,
+          fechaFinal,
+          r.propietario,
+          r.localidad,
+          r.telefono
+        );
+        insertados++;
 
-        // Evitar duplicados de incautado
-        const existeIncautado = db
-          .prepare("SELECT COUNT(*) AS total FROM incautado WHERE id_nodo = ?")
-          .get(idNodo).total;
-
-        if (estatusLower === "incautado" && existeIncautado === 0) {
-          insertIncautado.run(
-            idNodo,
-            nodo.id_tecnologia,
-            idEstatusNodo,
-            r.linea,
-            r.estaca,
-            r.punto,
-            r.latitud,
-            r.longitud,
-            r.altitud,
-            r.fecha_incautado || new Date().toISOString().split("T")[0],
-            r.propietario || "",
-            r.localidad || "",
-            r.contacto || ""
-          );
-          insertados++;
+        // 🔄 Actualizar estatus del nodo si aplica
+        if (idNodo) {
+          updateEstatusNodo.run(idEstatusNodo, idNodo);
         }
       }
     })();
 
-    // 🧹 Limpiar archivo temporal
+    // 🧹 Eliminar CSV temporal
     fs.unlinkSync(filePath);
 
-    // 📤 Respuesta final
     res.json({
       message: `✅ ${insertados} registros procesados correctamente.`,
+      duplicados,  // Respuesta de duplicados
       errores,
     });
+
   } catch (error) {
     console.error("❌ Error al procesar incautados:", error);
     res.status(500).json({ error: "Error al procesar el archivo CSV." });
   }
 });
 
+
 // --------------------------------------------------
-// 📋 Obtener todos los registros de la tabla incautado
+// 📋 Obtener tabla incautado (valores descriptivos)
 // --------------------------------------------------
 app.get("/api/incautados", (req, res) => {
   try {
     const data = db.prepare(`
       SELECT 
         i.id,
-        n.serie,
+        n.serie AS nodo,
         t.nombre AS tecnologia,
         e.nombre AS estatus,
         i.linea,
@@ -568,9 +595,12 @@ app.get("/api/incautados", (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("❌ Error al obtener incautados:", error);
-    res.status(500).json({ error: "Error al obtener los registros incautados." });
+    res.status(500).json({ error: "Error al obtener los registros de incautado." });
   }
 });
+
+
+
 // --------------------------------------------------
 // 📋 Obtener tabla incautado (solo IDs reales)
 // --------------------------------------------------
