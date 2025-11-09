@@ -24,12 +24,14 @@ export const DB_PATH = path.join(
   "control_material.db"
 */
 //COMPUTADORA EDUARDO
+
 "C:",
 "Users",
 "Control de Material",
-"Documents",
-"dev-Francisco",
 "SynologyDrive",
-"SynologyDrive",
+"CONTROL DE MATERIAL",
+"BASE INVENTARIO",
+"BASE DE DATOS",
+"control-inventario",
 "control_material.db"
 );
