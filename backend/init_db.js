@@ -179,6 +179,9 @@ CREATE TABLE IF NOT EXISTS incautado (
   linea TEXT,
   estaca TEXT,
   punto TEXT,
+  latitud REAL,
+  longitud REAL,
+  altitud REAL,
 
   -- Identificación del equipo
   equipo TEXT,
@@ -222,6 +225,7 @@ CREATE TABLE IF NOT EXISTS incautado (
   FOREIGN KEY (id_archivo_actualizacion_pdf) REFERENCES archivos(id),
   FOREIGN KEY (id_archivo_actualizacion_word) REFERENCES archivos(id)
 );
+
 
 CREATE TABLE IF NOT EXISTS mantenimiento (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

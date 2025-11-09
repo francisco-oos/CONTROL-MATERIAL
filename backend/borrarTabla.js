@@ -1,13 +1,13 @@
 import Database from "better-sqlite3";
-import { DB_PATH } from "./config.js"; // 🧩 Importa la ruta desde config.js
+import { DB_PATH } from "./config.js"; // 🧩 Ruta de la base de datos
 
-// Conexión a la base de datos usando DB_PATH
+// Crear conexión
 const db = new Database(DB_PATH);
 
-// Eliminar tabla si existe
-/*db.exec(`DROP TABLE IF EXISTS incautado;`);
+// Eliminar la tabla si ya existe
+db.exec(`DROP TABLE IF EXISTS incautado;`);
 
-// Crear tabla nuevamente con la estructura actualizada
+// Crear la tabla con los nuevos campos
 db.exec(`
   CREATE TABLE IF NOT EXISTS incautado (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +19,9 @@ db.exec(`
     linea TEXT,
     estaca TEXT,
     punto TEXT,
+    latitud REAL,
+    longitud REAL,
+    altitud REAL,
 
     -- Identificación del equipo
     equipo TEXT,
@@ -30,10 +33,10 @@ db.exec(`
     fecha_recuperado TEXT,
 
     -- Reportes y cabos responsables
-    nombre_reporte_incautado TEXT,     
-    id_archivo_reporte_incautado INTEGER, 
-    nombre_reporte_recuperado TEXT,    
-    id_archivo_reporte_recuperado INTEGER, 
+    nombre_reporte_incautado TEXT,
+    id_archivo_reporte_incautado INTEGER,
+    nombre_reporte_recuperado TEXT,
+    id_archivo_reporte_recuperado INTEGER,
 
     -- Archivo general de respaldo (PDF/Word)
     id_archivo_pdf INTEGER,
@@ -62,13 +65,8 @@ db.exec(`
     FOREIGN KEY (id_archivo_actualizacion_pdf) REFERENCES archivos(id),
     FOREIGN KEY (id_archivo_actualizacion_word) REFERENCES archivos(id)
   );
-`);*/
+`);
 
-db.prepare(`
-  INSERT OR IGNORE INTO nodos_estatus (nombre, niveles_permitidos)
-  VALUES ('Recuperado', '1,2');
-`).run();
 
 db.close();
-console.log("✅ Estatus 'Recuperado' agregado (si no existía).");
-
+console.log("✅ Tabla 'incautado' recreada y estatus 'Recuperado' agregado (si no existía).");

@@ -41,13 +41,16 @@ $(document).ready(() => {
 
 // 📥 2️⃣ Descargar formato CSV
 $("#btn-descargar-formato-incautados").on("click", () => {
-  const headers = [
-    "LINEA","ESTACA","PUNTO","EQUIPO","SERIE","STATUS",
-    "FECHA INCAUTADO","REPORTADO: CABO/ CHECADOR",
-    "FECHA DE RECUPERADO","REPORTADO: CABO/ CHECADOR",
-    "HIZO REPORTE","PROPIETARIO","TELEFONO",
-    "LOCALIDAD","MUNICIPIO","COMENTARIO","NOTA INFORMATIVA"
-  ];
+const headers = [
+  "LINEA","ESTACA","PUNTO",
+  "LATITUD","LONGITUD","ALTITUD",
+  "EQUIPO","SERIE","ESTATUS",
+  "FECHA INCAUTADO","REPORTADO: CABO/ CHECADOR",
+  "FECHA DE RECUPERADO","REPORTADO: CABO/ CHECADOR",
+  "HIZO REPORTE","PROPIETARIO","TELEFONO",
+  "LOCALIDAD","MUNICIPIO","COMENTARIO","NOTA INFORMATIVA"
+];
+
 
   const csvContent = headers.join(",") + "\n";
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
