@@ -80,16 +80,17 @@
           <h2>Listado de Nodos</h2>
 
           <div class="filtros">
-            <label for="filtro-serie">Serie:</label>
-            <input type="text" id="filtro-serie">    
+            <label for="filtro-serie">Serie:
+            <input type="text" id="filtro-serie-nodos"> </label>   
             
             <label for="filtro-tecnologia">Tecnología:
-              <select id="filtro-tecnologia"></select></label>
+              <select id="filtro-tecnologia-nodos"></select></label>
 
             <label for="filtro-estatus">Estatus:
-              <select id="filtro-estatus"></select></label>
+             <select id="filtro-estatus-nodos"></select></label>
 
-            <button class="btn-azul" onclick="aplicarFiltros()">Aplicar filtros</button>
+           <button class="btn-azul" onclick="aplicarFiltrosNodos()">Aplicar filtros</button>
+
           </div>  
 
           <div class="tabla-scroll">
@@ -108,13 +109,15 @@
             </table>
           </div>
 
-          <div class="paginacion">
-            <button onclick="paginaAnterior()">Anterior</button>
-            <button onclick="paginaSiguiente()">Siguiente</button>
-            <input type="number" id="pagina-input" placeholder="Ir a página" min="1">
-            <button onclick="irAPagina()">Ir</button>
-            <span id="pagina-actual">Página 1 de 1</span>
-          </div>
+<div class="paginacion">
+  <button id="btn-anterior-nodos">Anterior</button>
+  <button id="btn-siguiente-nodos">Siguiente</button>
+  <input type="number" id="pagina-input-nodos" placeholder="Ir a página" min="1">
+  <button id="btn-ir-nodos">Ir</button>
+  <span id="pagina-actual-nodos">Página 1 de 1</span>
+</div>
+
+
         </div>
       </div>
 
@@ -125,20 +128,23 @@
     <!-- Filtros -->
     <div class="filtros">
       <label for="filtro-serie">Serie:</label>
-      <input type="text" id="filtro-serie" placeholder="Buscar serie...">
+      <input type="text" id="filtro-serie-incautado" placeholder="Buscar serie...">
+<label for="filtro-tecnologia-incautado">Tecnología:
+<select id="filtro-tecnologia-incautado"></select></label>
 
-      <label for="filtro-tecnologia">Tecnología:</label>
-      <select id="filtro-tecnologia"></select>
+<label for="filtro-estatus-incautado">Estatus:
+<select id="filtro-estatus-incautado"></select></label>
 
-      <label for="filtro-estatus">Estatus:</label>
-      <select id="filtro-estatus"></select>
+<!--<button class="btn-azul" id="btn-aplicar-filtros-incautados">Aplicar filtros</button>-->
+<button id="btn-aplicar-filtros-incautados" class="btn-azul">Aplicar filtros</button>
 
-      <button class="btn-azul" onclick="aplicarFiltros()">Aplicar filtros</button>
+
     </div>
 
     <!-- Tabla -->
     <div class="tabla-scroll">
-      <table id="tabla-incautados">
+      <!--<table id="tabla-incautados">-->
+         <table id="tabla-preview-incautado">
         <thead>
           <tr>
             <th>ID</th>
@@ -154,15 +160,13 @@
     </div>
 
           <!-- Paginación -->
-          <div class="paginacion">
-            <button onclick="paginaAnterior()">Anterior</button>
-            <button onclick="paginaSiguiente()">Siguiente</button>
-            <input type="number" id="pagina-input" placeholder="Ir a página" min="1">
-            <button onclick="irAPagina()">Ir</button>
-            <span id="pagina-actual">Página 1 de 1</span>
-          </div>
-        </div>
-      </div>
+<div class="paginacion">
+  <button id="btn-anterior-incautados">Anterior</button>
+  <button id="btn-siguiente-incautados">Siguiente</button>
+  <input type="number" id="pagina-input-incautados" placeholder="Ir a página" min="1">
+  <button id="btn-ir-incautados">Ir</button>
+  <span id="pagina-actual-incautados">Página 1 de 1</span>
+</div>
       <!-- 🔚 Fin de Vista Incautados -->
 
     </section>

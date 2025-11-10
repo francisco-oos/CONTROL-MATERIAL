@@ -267,6 +267,53 @@ if (!estatusValido) {
 });
 
 // --------------------------------------------------
+// ENDPOINT: Actualizar el estatus de un nodo
+// --------------------------------------------------
+app.put("/api/incautados/:id/estatus", (req, res) => {
+  const { id } = req.params;
+  const { estatus } = req.body;
+
+ const estatusValido = db.prepare(`
+  SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
+`).get(estatus);
+
+if (!estatusValido) {
+  return res.status(400).json({ error: "Estatus inválido o no encontrado en la base de datos" });
+}
+
+
+  try {
+    const stmt = db.prepare(`
+      UPDATE nodos
+      SET id_estatus = (
+        SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
+      ),
+      fecha_actualizacion = datetime('now','localtime')
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(estatus, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Nodo no encontrado" });
+    }
+
+    const nodo = db.prepare(`
+      SELECT n.id, n.serie, ne.nombre AS estatus, n.fecha_actualizacion
+      FROM nodos n
+      LEFT JOIN nodos_estatus ne ON n.id_estatus = ne.id
+      WHERE n.id = ?
+    `).get(id);
+
+    res.json(nodo);
+
+  } catch (err) {
+    console.error("❌ Error al actualizar estatus:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --------------------------------------------------
 // (Próximo paso) Cargar celulares desde CSV
 // --------------------------------------------------
 // Este será similar a /api/cargar-nodos, pero con columnas:

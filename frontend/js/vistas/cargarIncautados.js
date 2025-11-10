@@ -19,7 +19,7 @@ fileInput.on("change", () => {
   reader.onload = (event) => {
     const text = event.target.result.trim();
     if (!text) {
-      alert("⚠️ El archivo está vacío o no es válido.");
+      alert(" El archivo está vacío o no es válido.");
       return;
     }
 
@@ -27,7 +27,7 @@ fileInput.on("change", () => {
     const headers = rows.shift();
 
     if (rows.length === 0) {
-      alert("⚠️ El archivo no contiene datos.");
+      alert(" El archivo no contiene datos.");
       return;
     }
 
@@ -48,7 +48,7 @@ fileInput.on("change", () => {
 });
 
 
-// 📥 2️⃣ Descargar formato CSV
+// Descargar formato CSV
 $("#btn-descargar-formato-incautados").on("click", () => {
 const headers = [
   "LINEA","ESTACA","PUNTO",

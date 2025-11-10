@@ -44,7 +44,7 @@ export async function inicializarVistaNodos() {
 
 // Cargar tecnologías para el filtro
 async function cargarFiltrosTecnologia() {
-  const select = document.getElementById("filtro-tecnologia");
+  const select = document.getElementById("filtro-tecnologia-nodos");
   select.innerHTML = `<option value="">Todas</option>`;
   try {
     const res = await fetch(API_TECNOLOGIAS);
@@ -64,8 +64,8 @@ async function cargarFiltrosTecnologia() {
 
 // Cargar estatus para el filtro
 async function cargarFiltrosestatus() {
-  const select = document.getElementById("filtro-estatus");
-  if (!select) return console.warn("No se encontró el elemento #filtro-estatus en el DOM");
+  const select = document.getElementById("filtro-estatus-nodos");
+  if (!select) return console.warn("No se encontró el elemento #filtro-estatus-nodos en el DOM");
   select.innerHTML = `<option value="">Todas</option>`;
   try {
     const res = await fetch(API_ESTATUS);
@@ -122,7 +122,7 @@ let nodosFiltrados = nodosCache.filter(n => {
       const fila = document.createElement("tr");
 
       const nombreTec = listaTecnologias.find(t => t.id === n.id_tecnologia)?.nombre || n.id_tecnologia;
-      const nombreEstatus = listaEstatus.find(e => e.id === n.id_estatus)?.nombre || "Desconocido";
+      const nombreEstatus = listaEstatus.find(e => e.id === n.id_estatus)?.nombre;
 
       fila.style.background = nombreEstatus === "Operativo" ? "#d1ffd1" : "#ffd1d1";
 
@@ -147,7 +147,7 @@ let nodosFiltrados = nodosCache.filter(n => {
     });
   }
 
-  document.getElementById("pagina-actual").textContent = `Página ${currentPage} de ${totalPaginas || 1}`;
+  document.getElementById("pagina-actual-nodos").textContent = `Página ${currentPage} de ${totalPaginas || 1}`;
 }
 
 
@@ -210,20 +210,21 @@ export function irAPagina() {
 }
 
 // Aplicar filtros (arreglado)
-export function aplicarFiltros() {
-  currentSerie = document.getElementById("filtro-serie").value.trim();
-  currentTecnologia = document.getElementById("filtro-tecnologia").value.trim();
+export function aplicarFiltrosNodos(){
+  currentSerie = document.getElementById("filtro-serie-nodos").value.trim();
+  currentTecnologia = document.getElementById("filtro-tecnologia-nodos").value.trim();
   // id correcto y paréntesis bien colocados:
-  const estSelect = document.getElementById("filtro-estatus");
-  currentEstatus = estSelect ? estSelect.value.trim() : "";
+  currentEstatus = document.getElementById("filtro-estatus-nodos")?.value.trim() || "";
   currentPage = 1;
   renderizarPagina();
 }
 
 
 
+
+
 // Hacer las funciones globales
 window.paginaSiguiente = paginaSiguiente;
 window.paginaAnterior = paginaAnterior;
-window.aplicarFiltros = aplicarFiltros;
+window.aplicarFiltrosNodos = aplicarFiltrosNodos;
 window.irAPagina=irAPagina;
