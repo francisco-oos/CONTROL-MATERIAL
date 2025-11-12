@@ -2,20 +2,15 @@
 // VistaIncautados.js
 // ===============================
 import { API_BASE } from '../../config.js';
+import { abrirModalAsignarEvidencia } from "./asignarEvidencia.js";
 
 let listaTecnologias = [];
 let listaEstatus = [
-  { id: 1, nombre: "Tendido" },
-  { id: 2, nombre: "Operativo" },
-  { id: 4, nombre: "Robado" },
-  { id: 5, nombre: "Extraviado" },
-  { id: 8, nombre: "Dañado" },
-  { id: 3, nombre: "Mantenimiento" },
-  { id: 6, nombre: "Para garantía" },
-  { id: 7, nombre: "En garantía" },
-  { id: 9, nombre: "Pruebas" },
-  { id: 10, nombre: "Incautado" }
+  { id: 10, nombre: "Incautado" },
+  { id: 11, nombre: "Recuperado" },
+   { id: 11, nombre: "recuperado" }
 ];
+
 
 const API_INCAUTADOS = `${API_BASE}/incautados`;
 const API_TECNOLOGIAS = `${API_BASE}/tecnologias`;
@@ -71,7 +66,8 @@ async function cargarFiltrosTecnologia() {
 
     tecnologias.forEach(t => {
       const opt = document.createElement("option");
-      opt.value = t.id;
+      //value = t.id;
+      opt.value = t.nombre;
       opt.textContent = t.nombre;
       selectTecnologia.appendChild(opt);
     });
@@ -82,24 +78,35 @@ async function cargarFiltrosTecnologia() {
 // Cargar estatus para el filtro
 async function cargarFiltrosEstatus() {
   const selectEstatus = document.getElementById("filtro-estatus-incautado");
-   if (!selectEstatus) return console.warn("No se encontró el elemento #filtro-estatus en el DOM");
-  selectEstatus.innerHTML = `<option value="">Todas</option>`;
+  if (!selectEstatus) return console.warn("No se encontró el elemento #filtro-estatus en el DOM");
+
+  selectEstatus.innerHTML = `<option value="">Todas</option>`; // Opción "Todas"
+
   try {
     const res = await fetch(API_ESTATUS);
     const estatus = await res.json();
-      // Reemplazamos el contenido del array (o reasignamos)
-    listaEstatus = estatus;
+    
+    // Filtramos solo los estatus que necesitamos (Incautado y Recuperado)
+    const estatusFiltrados = estatus.filter(e => e.nombre === "Incautado" || e.nombre === "Recuperado");
+
+    listaEstatus = estatusFiltrados; // Guardamos los estatus filtrados
+
     console.log("Estatus cargados:", listaEstatus);
-    estatus.forEach(e => {
+
+    // Añadimos las opciones al select
+    estatusFiltrados.forEach(e => {
       const opt = document.createElement("option");
-      opt.value = e.id;
+      //opt.value = e.id;
+      opt.value = e.nombre;
       opt.textContent = e.nombre;
       selectEstatus.appendChild(opt);
     });
+
   } catch (err) {
     console.error("Error al cargar estatus:", err);
   }
 }
+
 
 // Cargar todos los incautados
 async function cargarTodosIncautados() {
@@ -115,12 +122,12 @@ function renderizarPagina() {
   const tbody = document.getElementById("tbody-incautados");
   tbody.innerHTML = "";
 
-  // Filtrado
-  let incautadosFiltrados = incautadosCache.filter(i => {
-    return (!currentSerie || (i.nodo && i.nodo.includes(currentSerie))) &&
-           (!currentTecnologia || i.tecnologia === listaTecnologias.find(t => t.id === Number(currentTecnologia))?.nombre) &&
-           (!currentEstatus || i.estatus === listaEstatus.find(e => e.id === Number(currentEstatus))?.nombre);
-  });
+let incautadosFiltrados = incautadosCache.filter(i => {
+  return (!currentSerie || (i.nodo && i.nodo.toLowerCase().includes(currentSerie.toLowerCase()))) &&
+         (!currentTecnologia || i.tecnologia === currentTecnologia) &&
+         (!currentEstatus || i.estatus.toLowerCase() === currentEstatus.toLowerCase());
+});
+
 
   const totalPaginas = Math.ceil(incautadosFiltrados.length / limit);
   if (currentPage > totalPaginas) currentPage = totalPaginas || 1;
@@ -131,56 +138,145 @@ function renderizarPagina() {
 
   if (!incautadosPagina.length) {
     tbody.innerHTML = `<tr><td colspan="16" style="text-align:center;">No se encontraron registros</td></tr>`;
-  } else {
-    incautadosPagina.forEach(i => {
-      const fila = document.createElement("tr");
+    return;
+  }
 
-      const nombreTec = i.tecnologia || "Sin dato";
-      const nombreEstatus = i.estatus || "Desconocido";
+  incautadosPagina.forEach(i => {
+    const fila = document.createElement("tr");
 
-      fila.style.background = nombreEstatus === "Operativo" ? "#d1ffd1" : "#ffd1d1";
+    const nombreTec = i.tecnologia || "Sin dato";
+    const nombreEstatus = i.estatus || "Desconocido";
 
-      const opciones = listaEstatus
-        .map(e => `<option ${e.nombre === nombreEstatus ? 'selected' : ''}>${e.nombre}</option>`)
-        .join('');
+    // 🔹 Colores visuales según estatus actual (solo visual)
+    let colorFondo = "#ffd1d1"; // por defecto (rojo claro)
+    if (["Recuperado", "Operativo"].includes(nombreEstatus)) colorFondo = "#d1ffd1"; // verde
+    else if (["Incautado", "Robado", "Extraviado"].includes(nombreEstatus)) colorFondo = "#fff1d1"; // amarillo
 
-      fila.innerHTML = `
-        <td>${i.id}</td>
-        <td>${i.nodo || "-"}</td>
-        <td>${nombreTec}</td>
-        <td>${nombreEstatus}</td>
-        <td>${i.fecha_incautado || "-"}</td>
-        <td><select data-id="${i.id}">${opciones}</select></td>
-      `;
+    fila.style.background = colorFondo;
 
+    // 🔹 El select solo tiene Incautado / Recuperado (no los demás)
+    const opciones = listaEstatus
+      .map(e => `<option ${e.nombre === nombreEstatus ? 'selected' : ''} value="${e.nombre}">${e.nombre}</option>`)
+      .join('');
+
+    // 🔹 Si el estatus actual NO es Incautado ni Recuperado → se muestra pero el select queda deshabilitado
+   const esEditable = (i.nodo !== null ||  i.tecnologia === "Geófono") &&
+                   ["Incautado", "Recuperado","recuperado"].includes(nombreEstatus);
+
+fila.innerHTML = `
+  <td>${i.id}</td>
+  <td>${i.nodo || "-"}</td>
+  <td>${nombreTec}</td>
+  <td>${nombreEstatus}</td>
+  <td>${i.linea || "-"}</td>
+  <td>${i.estaca || "-"}</td>
+  <td>${i.propietario || "-"}</td>
+  <td>${i.localidad || "-"}</td>
+  <td>${i.fecha_incautado || "-"}</td>
+  <td>
+    <select data-id="${i.id}" ${!esEditable ? 'disabled' : ''}>
+      ${opciones}
+    </select>
+  </td>
+`;
+
+    // 🔹 Solo agregamos listener si puede editarse
+    if (esEditable) {
       fila.querySelector("select").addEventListener("change", async (e) => {
         await actualizarEstatusIncautado(i.id, e.target.value, fila);
       });
+    }
+    // Agregar celdas para archivos solo si el estatus permite editar
+const cellArchivos = document.createElement("td");
 
-      tbody.appendChild(fila);
+cellArchivos.innerHTML = `
+  <button data-id="${i.id}" class="btn-ver-archivos">Ver Archivos</button>
+  <input type="file" data-id="${i.id}" class="input-subir-archivo"/>
+  <select data-id="${i.id}" class="select-tipo-archivo">
+  <option value="Nota Informativa 1">Nota Informativa</option>
+    <option value="Nota Informativa 2">Nota Informativa actualizacion</option>
+    <option value="reporte">Reporte</option>
+  </select>
+  <button data-id="${i.id}" class="btn-subir-archivo">Subir</button>
+`;
+
+fila.appendChild(cellArchivos);
+// Subir archivo
+cellArchivos.querySelector(".btn-subir-archivo").addEventListener("click", async e => {
+  const id = i.id; // ID del incautado
+  const fileInput = cellArchivos.querySelector(".input-subir-archivo");
+  const tipoSelect = cellArchivos.querySelector(".select-tipo-archivo");
+
+  if (!fileInput.files[0]) return alert("Selecciona un archivo");
+
+  const formData = new FormData();
+  formData.append("archivo", fileInput.files[0]);
+  formData.append("tipo", tipoSelect.value);
+
+  try {
+    const res = await fetch(`${API_INCAUTADOS}/${id}/archivos`, {
+      method: "POST",
+      body: formData
     });
+
+    if (!res.ok) throw new Error((await res.json()).error || "Error al subir archivo");
+
+    const data = await res.json();
+    alert(`Archivo "${data.nombre}" subido correctamente`);
+  } catch (err) {
+    console.error(err);
+    alert(`Error al subir archivo: ${err.message}`);
   }
+});
+
+cellArchivos.querySelector(".btn-ver-archivos").addEventListener("click", async e => {
+  const id = i.id;
+  try {
+    const res = await fetch(`${API_INCAUTADOS}/${id}/archivos`);
+    if (!res.ok) throw new Error("No se pudieron cargar los archivos");
+
+    const archivos = await res.json();
+    if (!archivos.length) return alert("No hay archivos para este incautado");
+
+    const lista = archivos.map(a => `${a.nombre} (${a.tipo || 'sin tipo'})`).join("\n");
+    alert(`Archivos:\n${lista}`);
+  } catch (err) {
+    console.error(err);
+    alert("Error al cargar archivos");
+  }
+});
+
+    tbody.appendChild(fila);
+  });
 
   document.getElementById("pagina-actual-incautados").textContent =
     `Página ${currentPage} de ${totalPaginas || 1}`;
 }
 
 
-// Actualizar estatus del incautado
+
 export async function actualizarEstatusIncautado(id, nuevoEstatus, fila) {
   try {
+    // Buscar el nombre del estatus usando el ID seleccionado
+    const estatusSeleccionado = listaEstatus.find(e => e.id === Number(nuevoEstatus))?.nombre;
+    if (!estatusSeleccionado) {
+      alert("Estatus no válido");
+      return;
+    }
+
     const res = await fetch(`${API_INCAUTADOS}/${id}/estatus`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estatus: nuevoEstatus }),
+      body: JSON.stringify({ estatus: estatusSeleccionado }), // 🔹 Enviamos el nombre
     });
 
     const data = await res.json();
 
     if (res.ok) {
+      //const data = await res.json();
       fila.querySelector("td:nth-child(4)").textContent = data.estatus;
-      fila.style.background = data.estatus === "Operativo" ? "#d1ffd1" : "#ffd1d1";
-      // Actualizar cache también
+      fila.style.background = data.estatus === "Recuperado" ? "#d1ffd1" : "#ffd1d1";
+
       const incautadoIndex = incautadosCache.findIndex(i => i.id === id);
       if (incautadoIndex !== -1) {
         incautadosCache[incautadoIndex].id_estatus_nodo = listaEstatus.find(e => e.nombre === data.estatus)?.id || incautadosCache[incautadoIndex].id_estatus_nodo;
@@ -193,6 +289,7 @@ export async function actualizarEstatusIncautado(id, nuevoEstatus, fila) {
     alert("Error al conectar con el servidor");
   }
 }
+
 
 // Navegación de páginas
 export function paginaSiguienteIncautados() {

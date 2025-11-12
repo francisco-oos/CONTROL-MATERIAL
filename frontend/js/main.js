@@ -6,6 +6,7 @@
 // Importar la función de inicialización de la vista de nodos
 import { inicializarVistaNodos } from './vistas/VistaNodos.js';
 import { inicializarVistaIncautados } from './vistas/VistaIncautados.js';
+import { inicializarVistaMantenimiento } from './vistas/VistaMantenimiento.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const buttons = document.querySelectorAll("aside nav button"); // botones del menú lateral
@@ -74,7 +75,14 @@ else if (view === "vista-cargar-incautados") {
   if (vista) vista.style.display = "block";
 }
 
-
+    else if (view === "vista-nodos-mantenimiento") {
+        const vista = document.getElementById("vista-nodos-mantenimiento");
+        if (vista) {
+          vista.style.display = "block";
+          // Inicializar la vista de nodos
+          inicializarVistaMantenimiento();
+        }
+      }
       // -------------------------
       // OTRAS VISTAS FUTURAS
       // -------------------------

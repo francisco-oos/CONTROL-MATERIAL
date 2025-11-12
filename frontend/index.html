@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -24,7 +24,7 @@
         <button data-view="cargar-nodos">Cargar Base de Nodos</button>
         <button data-view="vista-cargar-incautados">Cargar Base de Nodos Incautados</button>
         <button data-view="ver-nodos">Ver Nodos</button>
-        <button data-view="mantenimiento">Mantenimiento</button>
+        <button data-view="vista-nodos-mantenimiento">Mantenimiento</button>
         <button data-view="vista-ver-incautados">Incautados</button>
       </nav>
     </aside>
@@ -81,17 +81,16 @@
 
           <div class="filtros">
             <label for="filtro-serie">Serie:
-            <input type="text" id="filtro-serie-nodos"> </label>   
+            <input type="text" id="filtro-serie-nodos"></label>
             
             <label for="filtro-tecnologia">Tecnología:
-              <select id="filtro-tecnologia-nodos"></select></label>
+            <select id="filtro-tecnologia-nodos"></select></label>
 
             <label for="filtro-estatus">Estatus:
-             <select id="filtro-estatus-nodos"></select></label>
+            <select id="filtro-estatus-nodos"></select></label>
 
-           <button class="btn-azul" onclick="aplicarFiltrosNodos()">Aplicar filtros</button>
-
-          </div>  
+            <button class="btn-azul" onclick="aplicarFiltrosNodos()">Aplicar filtros</button>
+          </div>
 
           <div class="tabla-scroll">
             <table id="tabla-preview-nodos">
@@ -109,68 +108,119 @@
             </table>
           </div>
 
-<div class="paginacion">
-  <button id="btn-anterior-nodos">Anterior</button>
-  <button id="btn-siguiente-nodos">Siguiente</button>
-  <input type="number" id="pagina-input-nodos" placeholder="Ir a página" min="1">
-  <button id="btn-ir-nodos">Ir</button>
-  <span id="pagina-actual-nodos">Página 1 de 1</span>
-</div>
-
-
+          <div class="paginacion">
+            <button id="btn-anterior-nodos">Anterior</button>
+            <button id="btn-siguiente-nodos">Siguiente</button>
+            <input type="number" id="pagina-input-nodos" placeholder="Ir a página" min="1">
+            <button id="btn-ir-nodos">Ir</button>
+            <span id="pagina-actual-nodos">Página 1 de 1</span>
+          </div>
         </div>
       </div>
 
-<div id="vista-ver-incautados" class="vista" style="display:none;">
-  <div class="vista-ver-incautados">
-    <h2>Material Incautado</h2>
+      <!-- Vista: Incautados -->
+      <div id="vista-ver-incautados" class="vista" style="display:none;">
+        <div class="vista-ver-incautados">
+          <h2>Material Incautado</h2>
+          <div class="filtros">
+            <label for="filtro-serie">Serie:</label>
+            <input type="text" id="filtro-serie-incautado" placeholder="Buscar serie...">
+            <label for="filtro-tecnologia-incautado">Tecnología:</label>
+            <select id="filtro-tecnologia-incautado"></select>
+            <label for="filtro-estatus-incautado">Estatus:</label>
+            <select id="filtro-estatus-incautado"></select>
+            <button id="btn-aplicar-filtros-incautados" class="btn-azul">Aplicar filtros</button>
+          </div>
 
-    <!-- Filtros -->
-    <div class="filtros">
-      <label for="filtro-serie">Serie:</label>
-      <input type="text" id="filtro-serie-incautado" placeholder="Buscar serie...">
-<label for="filtro-tecnologia-incautado">Tecnología:
-<select id="filtro-tecnologia-incautado"></select></label>
+          <div class="tabla-scroll">
+            <table id="tabla-preview-incautado">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nodo</th>
+                  <th>Tecnología</th>
+                  <th>Estatus</th>
+                  <th>Línea</th>
+                  <th>Estaca</th>
+                  <th>Propietario</th>
+                  <th>Localidad</th>
+                  <th>Fecha Incautado</th>
+                  <th>Cambiar Estatus</th>
+                  <th>Evidencia</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-incautados"></tbody>
+            </table>
+          </div>
 
-<label for="filtro-estatus-incautado">Estatus:
-<select id="filtro-estatus-incautado"></select></label>
+          <div class="paginacion">
+            <button id="btn-anterior-incautados">Anterior</button>
+            <button id="btn-siguiente-incautados">Siguiente</button>
+            <input type="number" id="pagina-input-incautados" placeholder="Ir a página" min="1">
+            <button id="btn-ir-incautados">Ir</button>
+            <span id="pagina-actual-incautados">Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
 
-<!--<button class="btn-azul" id="btn-aplicar-filtros-incautados">Aplicar filtros</button>-->
-<button id="btn-aplicar-filtros-incautados" class="btn-azul">Aplicar filtros</button>
+      <!-- ✅ NUEVA VISTA: MANTENIMIENTO -->
+      <div id="vista-nodos-mantenimiento" class="vista" style="display:none;">
+        <div class="vista-nodos-mantenimiento">
+          <h2>🧰 Nodos en Mantenimiento</h2>
 
+          <!-- Filtros -->
+          <div class="filtros">
+            <label for="filtro-serie-mantenimiento">Serie:</label>
+            <input type="text" id="filtro-serie-mantenimiento" placeholder="Buscar serie...">
+            <label for="filtro-tecnologia-mantenimiento">Tecnología:</label>
+            <select id="filtro-tecnologia-mantenimiento"></select>
+            <label for="filtro-estatus-mantenimiento">Estatus:</label>
+            <select id="filtro-estatus-mantenimiento"></select>
+            <button class="btn-azul" onclick="aplicarFiltrosmantenimiento()">Aplicar filtros</button>
+          </div>
 
-    </div>
-
-    <!-- Tabla -->
-    <div class="tabla-scroll">
-      <!--<table id="tabla-incautados">-->
-         <table id="tabla-preview-incautado">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nodo</th>
-            <th>Tecnología</th>
-            <th>Estatus</th>
-            <th>Fecha Incautado</th>
-            <th>Cambiar Estatus</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-incautados"></tbody>
-      </table>
-    </div>
+          <!-- Tabla -->
+          <div class="tabla-scroll">
+            <table id="tabla-preview-mantenimiento">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Serie</th>
+                  <th>Tecnología</th>
+                  <th>Estatus</th>
+                  <th>Fecha Actualización</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-nodos-mantenimiento"></tbody>
+            </table>
+          </div>
 
           <!-- Paginación -->
-<div class="paginacion">
-  <button id="btn-anterior-incautados">Anterior</button>
-  <button id="btn-siguiente-incautados">Siguiente</button>
-  <input type="number" id="pagina-input-incautados" placeholder="Ir a página" min="1">
-  <button id="btn-ir-incautados">Ir</button>
-  <span id="pagina-actual-incautados">Página 1 de 1</span>
-</div>
-      <!-- 🔚 Fin de Vista Incautados -->
+          <div class="paginacion">
+            <button onclick="paginaAnteriormantenimiento()">Anterior</button>
+            <button onclick="paginaSiguientemantenimiento()">Siguiente</button>
+            <span id="pagina-actual-mantenimiento">Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
+      <!-- 🔚 Fin de Vista Mantenimiento -->
 
     </section>
   </main>
+
+  <!-- Modal para Asignar Evidencia -->
+  <div id="modal-asignar-evidencia" class="modal" style="display:none;">
+    <div class="modal-contenido">
+      <h3>Asignar evidencia a otros materiales incautados</h3>
+      <p>Selecciona los materiales relacionados con este archivo:</p>
+      <div id="lista-incautados-relacionados" class="lista-incautados"></div>
+      <div class="modal-botones">
+        <button id="btn-confirmar-asignacion" class="btn-azul">Confirmar</button>
+        <button id="btn-cancelar-asignacion" class="btn-rojo">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Pie de Página -->
   <footer>© 2025 Control de Material</footer>
@@ -183,6 +233,7 @@
   <script type="module" src="js/vistas/VistaNodos.js"></script>
   <script type="module" src="js/vistas/cargarNodos.js"></script>
   <script type="module" src="js/vistas/cargarIncautados.js"></script>
-
+  <script type="module" src="js/vistas/asignarEvidencia.js"></script>
+  <script type="module" src="js/vistas/VistaMantenimiento.js"></script>
 </body>
 </html>

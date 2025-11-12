@@ -75,6 +75,15 @@ CREATE TABLE IF NOT EXISTS archivos (
   fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS incautado_archivos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_incautado INTEGER NOT NULL,
+  id_archivo INTEGER NOT NULL,
+  tipo TEXT, -- ej: 'nota', 'reporte'
+  FOREIGN KEY(id_incautado) REFERENCES incautado(id),
+  FOREIGN KEY(id_archivo) REFERENCES archivos(id)
+);
+
 CREATE TABLE IF NOT EXISTS nodos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   serie TEXT UNIQUE NOT NULL,
@@ -94,8 +103,8 @@ CREATE TABLE IF NOT EXISTS celular (
   numero_economico TEXT,
   fecha_recepcion TEXT,
   id_estatus INTEGER,
-  id_archivo_resguardo INTEGER,
-  id_archivo_devolucion INTEGER,
+FOREIGN KEY (id_archivo_resguardo) REFERENCES archivos(id),
+FOREIGN KEY (id_archivo_devolucion) REFERENCES archivos(id)
   comentario TEXT,
   fecha_devolucion TEXT,
   FOREIGN KEY (id_estatus) REFERENCES estatus_equipos(id)

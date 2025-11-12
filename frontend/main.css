@@ -125,9 +125,9 @@ footer {
 /* -------------------- Vista de Nodos -------------------- */
 
 /* Contenedor de Vista de Nodos */
-#vista-ver-nodos,#vista-ver-incautados{
+#vista-ver-nodos,#vista-ver-incautados, #vista-nodos-mantenimiento{
   /*width: max-content; /* Ocupa el 100% del espacio disponible en el contenedor */
-   width: 700%; /* Ocupa el 100% del espacio disponible en el contenedor */
+   width: 1000%; /* Ocupa el 100% del espacio disponible en el contenedor */
   max-width: 1200px; /* Limita el ancho máximo para pantallas grandes */
   margin: 0 auto; /* Centra el contenedor en pantallas grandes */
   padding: 30px;
@@ -140,6 +140,8 @@ footer {
   overflow:scroll;
   box-sizing: border-box;
 }
+
+
 
 /* Filtros de Serie y Tecnología */
 .filtros {
@@ -200,19 +202,21 @@ footer {
 }
 
 
-#tabla-preview-nodos,#tabla-preview-incautado {
+#tabla-preview-nodos,#tabla-preview-incautado ,#tabla-preview-mantenimiento {
   width: 100%; /* Asegura que la tabla ocupe todo el ancho */
   border-collapse: collapse;
 }
 
-#tabla-preview-nodos th ,#tabla-preview-incautado th,
-#tabla-preview-nodos td,#tabla-preview-incautado td {
+#tabla-preview-nodos th , #tabla-preview-nodos td,
+#tabla-preview-incautado  th,#tabla-preview-incautado td,
+#tabla-preview-mantenimientos th,#tabla-preview-mantenimiento td  {
   padding: 14px;
   text-align: center;
   border: 1px solid #ddd;
 }
 
-#tabla-preview-nodos th ,#tabla-preview-incautado th {
+#tabla-preview-nodos th ,#tabla-preview-incautado th,#tabla-preview-mantenimiento th
+ {
   background-color: #004b87;
   color: white;
 }
@@ -263,7 +267,7 @@ footer {
   }
 
   /* Ajustes para la vista de nodos en dispositivos pequeños */
-  #vista-ver-nodos,#vista-ver-incautados {
+  #vista-ver-nodos , #vista-ver-incautados , #vista-nodos-mantenimiento{
     padding: 20px; /* Reducir un poco el padding en pantallas más pequeñas */
     gap: 15px;
     width: 100%; /* Asegurar que ocupe todo el ancho */
@@ -326,4 +330,47 @@ footer {
   section {
     grid-template-columns: 1fr;
   }
+}
+/* === MODAL GLOBAL === */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-contenido {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: aparecer 0.25s ease-out;
+}
+
+@keyframes aparecer {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.lista-incautados {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
 }

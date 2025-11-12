@@ -11,10 +11,8 @@ import path from "path";
 import fs from "fs";
 import csv from "csv-parser";
 import db from "./database.js";
-
 const app = express();
 const PORT = process.env.PORT || 3001; // ← configurable
-
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -132,13 +130,19 @@ app.post("/api/upload", upload.single("archivo"), (req, res) => {
 // --------------------------------------------------
 // Rutas para gestión de nodos
 // --------------------------------------------------
-
 // ✅ Obtener todos los nodos o filtrarlos por serie, tecnología o estatus
 app.get("/api/nodos", (req, res) => {
   try {
     const { serie, tecnologia, estatus } = req.query;
 
-    let query = "SELECT * FROM nodos WHERE 1=1";
+    let query = `
+  SELECT n.*, t.nombre AS tecnologia, e.nombre AS estatus
+  FROM nodos n
+  LEFT JOIN tecnologia t ON n.id_tecnologia = t.id
+  LEFT JOIN nodos_estatus e ON n.id_estatus = e.id
+  WHERE 1=1
+`;
+
     const params = [];
 
     if (serie) {
@@ -213,9 +217,9 @@ app.delete("/api/estatus/clear", (req, res) => {
       return res.status(404).json({ message: "No se encontraron nodos para borrar." });
     }
 
-    res.json({ message: "Todos los nodos han sido eliminados correctamente." });
+    res.json({ message: "Todos los estatus han sido eliminados correctamente." });
   } catch (error) {
-    console.error("❌ Error al eliminar los nodos:", error);
+    console.error("❌ Error al eliminar los estatus:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -266,52 +270,6 @@ if (!estatusValido) {
   }
 });
 
-// --------------------------------------------------
-// ENDPOINT: Actualizar el estatus de un nodo
-// --------------------------------------------------
-app.put("/api/incautados/:id/estatus", (req, res) => {
-  const { id } = req.params;
-  const { estatus } = req.body;
-
- const estatusValido = db.prepare(`
-  SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
-`).get(estatus);
-
-if (!estatusValido) {
-  return res.status(400).json({ error: "Estatus inválido o no encontrado en la base de datos" });
-}
-
-
-  try {
-    const stmt = db.prepare(`
-      UPDATE nodos
-      SET id_estatus = (
-        SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
-      ),
-      fecha_actualizacion = datetime('now','localtime')
-      WHERE id = ?
-    `);
-
-    const result = stmt.run(estatus, id);
-
-    if (result.changes === 0) {
-      return res.status(404).json({ error: "Nodo no encontrado" });
-    }
-
-    const nodo = db.prepare(`
-      SELECT n.id, n.serie, ne.nombre AS estatus, n.fecha_actualizacion
-      FROM nodos n
-      LEFT JOIN nodos_estatus ne ON n.id_estatus = ne.id
-      WHERE n.id = ?
-    `).get(id);
-
-    res.json(nodo);
-
-  } catch (err) {
-    console.error("❌ Error al actualizar estatus:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // --------------------------------------------------
 // (Próximo paso) Cargar celulares desde CSV
@@ -337,9 +295,9 @@ app.post("/api/cargar-celulares", upload.single("file"), (req, res) => {
     })
     .on("end", () => {
       try {
-        const insert = db.prepare(
-          "INSERT INTO celulares (serie, chip, handy, tecnologia, estatus) VALUES (?, ?, ?, ?, ?)"
-        );
+const insert = db.prepare(
+  "INSERT INTO celular (serie, modelo, comentario, id_estatus) VALUES (?, ?, ?, ?)"
+);
         db.transaction(() => {
           for (const r of results) insert.run(r.serie, r.chip, r.handy, r.tecnologia, r.estatus);
         })();
@@ -386,14 +344,13 @@ app.get("/api/permisos", (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// Equipos
 app.get("/api/equipos", (req, res) => {
   try {
-    const data = db.prepare("SELECT * FROM equipos").all();
-    res.json(data);
+    const celulares = db.prepare("SELECT * FROM celular").all();
+    const chips = db.prepare("SELECT * FROM chips").all();
+    const handy = db.prepare("SELECT * FROM handy").all();
+    res.json({ celulares, chips, handy });
   } catch (error) {
-    console.error("❌ Error al obtener equipos:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -606,83 +563,433 @@ app.post("/api/cargar-incautados", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "Error al procesar el archivo CSV." });
   }
 });
-
-
-// --------------------------------------------------
-// 📋 Obtener tabla incautado (valores descriptivos)
-// --------------------------------------------------
 app.get("/api/incautados", (req, res) => {
   try {
-    const data = db.prepare(`
-      SELECT 
-        i.id,
-        n.serie AS nodo,
-        t.nombre AS tecnologia,
-        e.nombre AS estatus,
-        i.linea,
-        i.estaca,
-        i.punto,
-        i.latitud,
-        i.longitud,
-        i.altitud,
-        i.fecha_incautado,
-        i.fecha_recuperado,
-        i.propietario,
-        i.localidad,
-        i.telefono,
-        i.comentario,
-        i.nota_informativa
+    // 1️⃣ Obtener todos los incautados existentes
+    const incautados = db.prepare(`
+      SELECT i.id, i.id_nodo, n.serie AS nodo, t.nombre AS tecnologia,
+             COALESCE(e.nombre, i.status) AS estatus,
+             i.linea, i.estaca, i.punto, i.latitud, i.longitud, i.altitud,
+             i.fecha_incautado, i.fecha_recuperado, i.propietario,
+             i.localidad, i.telefono, i.comentario, i.nota_informativa
       FROM incautado i
       LEFT JOIN nodos n ON i.id_nodo = n.id
       LEFT JOIN tecnologia t ON i.id_tecnologia = t.id
-      LEFT JOIN nodos_estatus e ON i.id_estatus_nodo = e.id
-      ORDER BY i.id DESC;
+      LEFT JOIN nodos_estatus e ON n.id_estatus = e.id
+      ORDER BY i.id DESC
+    `).all();
+
+    // 2️⃣ Buscar nodos con estatus 'Incautado' que no estén en la tabla incautado
+    const nodosIncautados = db.prepare(`
+      SELECT n.id AS id_nodo, n.serie, n.id_tecnologia, n.id_estatus
+      FROM nodos n
+      LEFT JOIN incautado i ON i.id_nodo = n.id
+      LEFT JOIN nodos_estatus ne ON n.id_estatus = ne.id
+      WHERE ne.nombre = 'Incautado' AND i.id IS NULL
+    `).all();
+
+    // 3️⃣ Insertarlos en incautado si no existen
+    const insertStmt = db.prepare(`
+      INSERT INTO incautado (id_nodo, id_tecnologia, status, fecha_incautado)
+      VALUES (?, ?, 'Incautado', datetime('now','localtime'))
+    `);
+
+    nodosIncautados.forEach(nodo => insertStmt.run(nodo.id_nodo, nodo.id_tecnologia));
+
+    // 4️⃣ Volver a traer todos los incautados ya sincronizados
+    const data = db.prepare(`
+      SELECT i.id, n.serie AS nodo, t.nombre AS tecnologia,
+             COALESCE(e.nombre, i.status) AS estatus,
+             i.linea, i.estaca, i.punto, i.latitud, i.longitud, i.altitud,
+             i.fecha_incautado, i.fecha_recuperado, i.propietario,
+             i.localidad, i.telefono, i.comentario, i.nota_informativa
+      FROM incautado i
+      LEFT JOIN nodos n ON i.id_nodo = n.id
+      LEFT JOIN tecnologia t ON i.id_tecnologia = t.id
+      LEFT JOIN nodos_estatus e ON n.id_estatus = e.id
+      ORDER BY i.id DESC
     `).all();
 
     res.json(data);
+
   } catch (error) {
     console.error("❌ Error al obtener incautados:", error);
     res.status(500).json({ error: "Error al obtener los registros de incautado." });
   }
 });
 
+app.post("/api/incautados", (req, res) => {
+  const {
+    id_nodo, id_tecnologia, linea, estaca, punto,
+    latitud, longitud, altitud, propietario, localidad,
+    telefono, comentario, nota_informativa, equipo, serie
+  } = req.body;
 
+  // caso geófono: permitir sin id_nodo
+  const esGeofono = (equipo || "").toLowerCase().includes("geofono") || (id_tecnologia && (() => {
+    const t = db.prepare("SELECT nombre FROM tecnologia WHERE id = ?").get(id_tecnologia);
+    return t && /geofono/i.test(t.nombre);
+  })());
 
-// --------------------------------------------------
-// 📋 Obtener tabla incautado (solo IDs reales)
-// --------------------------------------------------
-app.get("/api/incautados/raw", (req, res) => {
   try {
-    const data = db.prepare(`
-      SELECT 
-        id,
-        id_nodo,
-        id_tecnologia,
-        id_estatus_nodo,
-        linea,
-        estaca,
-        punto,
-        latitud,
-        longitud,
-        altitud,
-        fecha_incautado,
-        fecha_recuperado,
-        propietario,
-        localidad,
-        telefono,
-        comentario,
-        nota_informativa
-      FROM incautado
-      ORDER BY id DESC;
-    `).all();
+    const idIncautadoStatus = getEstatusId("Incautado");
+    const idRecuperadoStatus = getEstatusId("Recuperado");
+    const idMantenimientoStatus = getEstatusId("Mantenimiento");
+    const idOperativoStatus = getEstatusId("Operativo");
 
-    res.json(data);
-  } catch (error) {
-    console.error("❌ Error al obtener incautados (raw):", error);
-    res.status(500).json({ error: "Error al obtener los registros de incautado." });
+    if (!idIncautadoStatus || !idRecuperadoStatus) {
+      return res.status(500).json({ error: "Falta configuración de estatus (Incautado/Recuperado) en DB" });
+    }
+
+    // Si NO es geófono, id_nodo es obligatorio
+    if (!esGeofono && !id_nodo) {
+      return res.status(400).json({ error: "id_nodo es obligatorio salvo para Geófono" });
+    }
+
+    const fechaNow = new Date().toISOString();
+
+    const result = db.transaction(() => {
+      let resolvedLinea = linea;
+      let resolvedEstaca = estaca;
+
+      // Si id_nodo existe, revisamos su estatus actual
+      if (!esGeofono) {
+        const nodo = getNodoConEstatus(id_nodo);
+        if (!nodo) throw new Error("Nodo no existe");
+
+        // Si está en Mantenimiento y NO es Operativo -> bloquear
+        if (nodo.estatus_nombre && nodo.estatus_nombre.toLowerCase() === "mantenimiento") {
+          // buscamos subestatus en la tabla mantenimiento si existe un registro reciente
+          const mant = db.prepare(`
+            SELECT id_estatus_nodo FROM mantenimiento WHERE id_nodo = ? ORDER BY id DESC LIMIT 1
+          `).get(id_nodo);
+
+          // Si existe sub-estatus y no es Operativo -> bloquear
+          if (mant && mant.id_estatus_nodo && mant.id_estatus_nodo !== idOperativoStatus) {
+            throw new Error("El nodo se encuentra en Mantenimiento con sub-estado que NO permite incautación (bloqueado).");
+          }
+        }
+
+        // Rellenar linea/estaca si vienen vacíos con la última entrada en tendido
+        if ((!resolvedLinea || !resolvedEstaca)) {
+          const last = getUltimaLineaEstaca(id_nodo);
+          if (last) {
+            resolvedLinea = resolvedLinea || last.linea;
+            resolvedEstaca = resolvedEstaca || last.estaca;
+          }
+        }
+
+        // Si el nodo está actualmente Robado/Extraviado y ahora se incauta -> marcar previa(s) como Recuperado
+        const prevName = nodo.estatus_nombre ? nodo.estatus_nombre.toLowerCase() : null;
+        if (prevName === "robado" || prevName === "extraviado") {
+          // actualizar registros en nodos_robados_extraviados a 'Recuperado'
+          db.prepare(`
+            UPDATE nodos_robados_extraviados
+            SET id_estatus_nodo = ?, comentario = COALESCE(comentario, '') || ' | Marcado Recuperado porque ahora está incautado.'
+            WHERE id_nodo = ? AND id_estatus_nodo != ?
+          `).run(idRecuperadoStatus, id_nodo, idRecuperadoStatus);
+        }
+
+        // Si estaba en Incautado previo quizá hay un registro activo — lo podemos marcar recuperado antes de insertar nuevo
+        if (prevName === "incautado") {
+          db.prepare(`
+            UPDATE incautado
+            SET id_estatus_nodo = ?, fecha_recuperado = datetime('now','localtime'),
+                comentario = COALESCE(comentario,'') || ' | Marcado recuperado por nueva incautación.'
+            WHERE id_nodo = ? AND (id_estatus_nodo IS NULL OR id_estatus_nodo != ?)
+          `).run(idRecuperadoStatus, id_nodo, idRecuperadoStatus);
+        }
+      }
+
+      // Insertar en incautado (id_nodo puede ser null para geófono)
+      const insert = db.prepare(`
+        INSERT INTO incautado (
+          id_nodo, id_tecnologia, id_estatus_nodo,
+          linea, estaca, punto, latitud, longitud, altitud,
+          equipo, serie, status, fecha_incautado, propietario, localidad, telefono, comentario, nota_informativa
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now','localtime'), ?, ?, ?, ?, ?)
+      `);
+
+      const info = insert.run(
+        esGeofono ? null : id_nodo,
+        id_tecnologia || null,
+        idIncautadoStatus,
+        resolvedLinea || null,
+        resolvedEstaca || null,
+        punto || null,
+        latitud || null,
+        longitud || null,
+        altitud || null,
+        equipo || null,
+        serie || null,
+        "Incautado",
+        propietario || null,
+        localidad || null,
+        telefono || null,
+        comentario || null,
+        nota_informativa || null
+      );
+
+      // Actualizar estatus del nodo en tabla nodos (si aplica)
+      if (!esGeofono && id_nodo) {
+        db.prepare(`
+          UPDATE nodos
+          SET id_estatus = ?, fecha_actualizacion = datetime('now','localtime')
+          WHERE id = ?
+        `).run(idIncautadoStatus, id_nodo);
+      }
+
+      return info.lastInsertRowid;
+    })();
+
+    const nuevo = db.prepare("SELECT * FROM incautado WHERE id = ?").get(result);
+    res.status(201).json(nuevo);
+
+  } catch (err) {
+    console.error("Error insertar incautado:", err);
+    res.status(400).json({ error: err.message || "Error al insertar incautado" });
   }
 });
 
+// POST /api/incautados/:id/archivos
+app.post("/api/incautados/:id/archivos", (req, res) => {
+  const { id } = req.params;
+  const { tipo, nombre, ruta } = req.body; // ruta local o URL
+
+  if (!tipo || !nombre || !ruta) {
+    return res.status(400).json({ error: "Faltan datos del archivo" });
+  }
+
+  try {
+    const insertArchivo = db.prepare("INSERT INTO archivos (nombre, ruta) VALUES (?, ?)");
+    const resultArchivo = insertArchivo.run(nombre, ruta);
+
+    const insertIncArchivo = db.prepare(`
+      INSERT INTO incautado_archivos (id_incautado, id_archivo, tipo)
+      VALUES (?, ?, ?)
+    `);
+    insertIncArchivo.run(id, resultArchivo.lastInsertRowid, tipo);
+
+    const archivoAgregado = db.prepare("SELECT * FROM archivos WHERE id = ?")
+                               .get(resultArchivo.lastInsertRowid);
+
+    res.status(201).json(archivoAgregado);
+  } catch (error) {
+    console.error("❌ Error al subir archivo:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// GET /api/incautados/:id/archivos
+app.get("/api/incautados/:id/archivos", (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const archivos = db.prepare(`
+      SELECT a.id, a.nombre, a.ruta, ia.tipo
+      FROM incautado_archivos ia
+      JOIN archivos a ON ia.id_archivo = a.id
+      WHERE ia.id_incautado = ?
+    `).all(id);
+
+    res.json(archivos);
+  } catch (error) {
+    console.error("Error al obtener archivos:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// --------------------------------------------------
+// 📤 Subir archivo asociado a un incautado
+// --------------------------------------------------
+app.post("/api/incautados/:id/archivos", upload.single("archivo"), (req, res) => {
+  const { id } = req.params;
+  const { tipo } = req.body;
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "Archivo no enviado" });
+  }
+
+  try {
+    // 1️⃣ Guardar el archivo en la tabla 'archivos'
+    const fecha = new Date().toISOString();
+    const result = db.prepare(`
+      INSERT INTO archivos (nombre, ruta, fecha_creacion)
+      VALUES (?, ?, ?)
+    `).run(file.originalname, file.filename, fecha);
+
+    const id_archivo = result.lastInsertRowid;
+
+    // 2️⃣ Asociar el archivo al incautado
+    db.prepare(`
+      INSERT INTO incautado_archivos (id_incautado, id_archivo, tipo)
+      VALUES (?, ?, ?)
+    `).run(id, id_archivo, tipo || null);
+
+    res.status(201).json({
+      message: "✅ Archivo subido y vinculado correctamente.",
+      id_archivo,
+      nombre: file.originalname,
+      ruta: file.filename,
+      tipo,
+    });
+  } catch (error) {
+    console.error("❌ Error al subir archivo:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// --------------------------------------------------
+// ENDPOINT: Actualizar el estatus de un nodo
+// --------------------------------------------------
+app.put("/api/incautados/:id/estatus", (req, res) => {
+  const { id } = req.params;
+  const { estatus } = req.body;
+
+ const estatusValido = db.prepare(`
+  SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
+`).get(estatus);
+
+if (!estatusValido) {
+  return res.status(400).json({ error: "Estatus inválido o no encontrado en la base de datos" });
+}
+
+
+  try {
+    const stmt = db.prepare(`
+      UPDATE nodos
+      SET id_estatus = (
+        SELECT id FROM nodos_estatus WHERE LOWER(nombre) = LOWER(?)
+      ),
+      fecha_actualizacion = datetime('now','localtime')
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(estatus, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Nodo no encontrado" });
+    }
+
+    const nodo = db.prepare(`
+      SELECT n.id, n.serie, ne.nombre AS estatus, n.fecha_actualizacion
+      FROM nodos n
+      LEFT JOIN nodos_estatus ne ON n.id_estatus = ne.id
+      WHERE n.id = ?
+    `).get(id);
+
+    res.json(nodo);
+
+  } catch (err) {
+    console.error("❌ Error al actualizar estatus:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// Helpers: obtener id de estatus por nombre (case-insensitive)
+function getEstatusId(nombre) {
+  const row = db.prepare("SELECT id FROM nodos_estatus WHERE LOWER(nombre)=LOWER(?)").get(nombre);
+  return row ? row.id : null;
+}
+
+// Helper: obtener nombre de estatus actual del nodo
+function getNodoConEstatus(id_nodo) {
+  return db.prepare(`
+    SELECT n.id, n.serie, n.id_estatus, ne.nombre AS estatus_nombre
+    FROM nodos n
+    LEFT JOIN nodos_estatus ne ON n.id_estatus = ne.id
+    WHERE n.id = ?
+  `).get(id_nodo);
+}
+
+// Helper: última linea/estaca en tendido para un nodo
+function getUltimaLineaEstaca(id_nodo) {
+  return db.prepare(`
+    SELECT linea, estaca FROM tendido
+    WHERE id_nodo = ?
+    ORDER BY id DESC LIMIT 1
+  `).get(id_nodo);
+}
+app.post("/api/mantenimiento", (req, res) => {
+  const { id_nodo, id_tecnologia, fecha_llegada, linea, estaca, id_estatus_nodo, comentario } = req.body;
+
+  if (!id_nodo) return res.status(400).json({ error: "id_nodo obligatorio" });
+
+  try {
+    const idRecuperado = getEstatusId("Recuperado");
+    if (!idRecuperado) throw new Error("Estatus 'Recuperado' no configurado");
+
+    const result = db.transaction(() => {
+      // 1) marcar incautado existente como recuperado
+      db.prepare(`
+        UPDATE incautado
+        SET id_estatus_nodo = ?, fecha_recuperado = datetime('now','localtime'),
+            comentario = COALESCE(comentario,'') || ' | Marcado Recuperado por ingreso a Mantenimiento'
+        WHERE id_nodo = ? AND (id_estatus_nodo IS NULL OR id_estatus_nodo != ?)
+      `).run(idRecuperado, id_nodo, idRecuperado);
+
+      // 2) marcar robado/extraviado como recuperado
+      db.prepare(`
+        UPDATE nodos_robados_extraviados
+        SET id_estatus_nodo = ?, comentario = COALESCE(comentario,'') || ' | Marcado Recuperado por ingreso a Mantenimiento'
+        WHERE id_nodo = ? AND (id_estatus_nodo IS NULL OR id_estatus_nodo != ?)
+      `).run(idRecuperado, id_nodo, idRecuperado);
+
+      // 3) Insertar registro de mantenimiento
+      const insert = db.prepare(`
+        INSERT INTO mantenimiento (fecha_llegada, linea, estaca, id_nodo, id_tecnologia, id_estatus_nodo, comentario)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+      const resInsert = insert.run(fecha_llegada || new Date().toISOString(), linea || null, estaca || null, id_nodo, id_tecnologia || null, id_estatus_nodo || null, comentario || null);
+
+      // 4) Actualizar el estatus del nodo a 'Mantenimiento' (si procedente)
+      const idMantenimiento = getEstatusId("Mantenimiento");
+      if (idMantenimiento) {
+        db.prepare(`UPDATE nodos SET id_estatus = ?, fecha_actualizacion = datetime('now','localtime') WHERE id = ?`)
+          .run(idMantenimiento, id_nodo);
+      }
+      return resInsert.lastInsertRowid;
+    })();
+
+    const nuevo = db.prepare("SELECT * FROM mantenimiento WHERE id = ?").get(result);
+    res.status(201).json(nuevo);
+
+  } catch (err) {
+    console.error("Error insertar mantenimiento:", err);
+    res.status(400).json({ error: err.message || "Error al insertar mantenimiento" });
+  }
+});
+app.post("/api/robados_extraviados", (req, res) => {
+  const { id_nodo, id_tecnologia, id_estatus_nodo, linea, estaca, comentario } = req.body;
+
+  if (!id_nodo) return res.status(400).json({ error: "id_nodo obligatorio" });
+
+  try {
+    const idIncautado = getEstatusId("Incautado");
+    const idRecuperado = getEstatusId("Recuperado");
+
+    // Reglas: si nodo está actualmente Incautado -> no permitir (o marcar recuperación previa si quieres)
+    const nodo = getNodoConEstatus(id_nodo);
+    if (nodo && nodo.estatus_nombre && nodo.estatus_nombre.toLowerCase() === "incautado") {
+      return res.status(400).json({ error: "Nodo ya marcado como Incautado. Debe recuperarse antes de marcar Robado/Extraviado." });
+    }
+
+    const insert = db.prepare(`
+      INSERT INTO nodos_robados_extraviados (id_nodo, id_tecnologia, id_estatus_nodo, linea, estaca, comentario)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const r = insert.run(id_nodo, id_tecnologia || null, id_estatus_nodo || null, linea || null, estaca || null, comentario || null);
+
+    // Actualizar estatus de nodo a Robado/Extraviado
+    if (id_estatus_nodo) {
+      db.prepare(`UPDATE nodos SET id_estatus = ?, fecha_actualizacion = datetime('now','localtime') WHERE id = ?`).run(id_estatus_nodo, id_nodo);
+    }
+
+    const nuevo = db.prepare("SELECT * FROM nodos_robados_extraviados WHERE id = ?").get(r.lastInsertRowid);
+    res.status(201).json(nuevo);
+
+  } catch (err) {
+    console.error("Error insertar robado/extraviado:", err);
+    res.status(400).json({ error: err.message || "Error al insertar robado/extraviado" });
+  }
+});
 
 
 app.listen(PORT, () => {
