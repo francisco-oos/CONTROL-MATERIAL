@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // -------------------------
       // VISTA: INICIO
       // -------------------------
-      if (view === "inicio") {
+      if (view === "vista-inicio") {
         content.innerHTML = `
           <div class="card">
             <h3>Bienvenido</h3>

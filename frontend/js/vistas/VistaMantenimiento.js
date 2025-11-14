@@ -15,7 +15,6 @@ let listaEstatus = [
   { id: 3, nombre: "No reparable" },
   { id: 8, nombre: "Dañado" },
 ];
-
 // Datos ficticios realistas
 let nodosCache = [
   { id: 1, serie: "Q00710011", id_tecnologia: 1, id_estatus: 10, fecha_actualizacion: "2025-11-10 09:15:22" },
@@ -114,14 +113,14 @@ function renderizarPaginaMantenimiento() {
   } else {
     nodosPagina.forEach(n => {
       const fila = document.createElement("tr");
-      const nombreTec = listaTecnologias.find(t => t.id === n.id_tecnologia)?.nombre || "Desconocida";
-      const nombreEstatus = listaEstatus.find(e => e.id === n.id_estatus)?.nombre || "Incautado";
+      const nombreTec = t(listaTecnologias.find(t => t.id === n.id_tecnologia)?.nombre || "Desconocida");
+      const nombreEstatus = t(listaEstatus.find(e => e.id === n.id_estatus)?.nombre || "Incautado");
       fila.style.background = "#fff3cd"; // color amarillo claro para incautado
       fila.innerHTML = `
         <td>${n.id}</td>
         <td>${n.serie}</td>
-        <td>${nombreTec}</td>
-        <td class="estatus-celda">${nombreEstatus}</td>
+        <td>${t(nombreTec)}</td>
+        <td class="estatus-celda">${t(nombreEstatus)}</td>
         <td>${n.fecha_actualizacion}</td>
         <td><button class="btn btn-sm btn-warning" disabled>Incautado</button></td>
       `;
@@ -132,6 +131,14 @@ function renderizarPaginaMantenimiento() {
   document.getElementById("pagina-actual-mantenimiento").textContent =
     `Página ${currentPage} de ${totalPaginas || 1}`;
 }
+// ===============================
+// Función de traducción local
+// ===============================
+function t(key) {
+  let lang = localStorage.getItem("lang") || "es";
+  return translations[lang][key] || key;
+}
+
 
 // Navegación
 export function paginaSiguientemantenimiento() { currentPage++; renderizarPaginaMantenimiento(); }
