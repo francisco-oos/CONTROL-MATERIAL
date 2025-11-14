@@ -258,15 +258,20 @@ CREATE TABLE IF NOT EXISTS tendido (
   linea TEXT,
   estaca TEXT,
   id_nodo INTEGER,
-  geofono TEXT,
+  geofono INTEGER DEFAULT 0,  -- 0 = false, 1 = true
   arnes TEXT,
   id_tipo_tendido INTEGER,
   nombre_tendio TEXT,
   nombre_roto TEXT,
   nombre_levanto TEXT,
+  latitud REAL,
+  longitud REAL,
+  elevacion REAL,
+  fecha_estatus TEXT, -- formato YYYY-MM-DD
   FOREIGN KEY (id_nodo) REFERENCES nodos(id),
   FOREIGN KEY (id_tipo_tendido) REFERENCES tipo_tendido(id)
 );
+
 `);
 
 console.log("✅ Todas las tablas creadas correctamente.");

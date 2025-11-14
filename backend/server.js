@@ -480,7 +480,7 @@ app.post("/api/cargar-incautados", upload.single("file"), async (req, res) => {
         // 🧭 Caso especial: geófono
         if (equipoLower.includes("geofono")) {
           idNodo = null;
-          idTecnologia = tecnologiasMap["geófono"] || tecnologiasMap["geofono"] || null;
+          idTecnologia =  tecnologiasMap["geofono"] || null;
           if (!idTecnologia) {
             errores.push({ motivo: "Tecnología 'Geófono' no encontrada", ...r });
             continue;
@@ -988,6 +988,314 @@ app.post("/api/robados_extraviados", (req, res) => {
   } catch (err) {
     console.error("Error insertar robado/extraviado:", err);
     res.status(400).json({ error: err.message || "Error al insertar robado/extraviado" });
+  }
+});
+// ==========================================
+// 🌐 ENDPOINTS TENDIDO
+// ==========================================
+
+// --------------------------------------------------
+// 📋 GET /api/tendido
+// Obtener todos los registros con sus relaciones
+// --------------------------------------------------
+app.get("/api/tendido", (req, res) => {
+  try {
+    const data = db.prepare(`
+      SELECT 
+        t.id,
+        t.linea,
+        t.estaca,
+        t.id_nodo,
+        n.serie AS serie_nodo,
+        t.geofono,
+        t.arnes,
+        t.id_tipo_tendido,
+        tt.nombre AS tipo_tendido,
+        t.nombre_tendio,
+        t.nombre_roto,
+        t.nombre_levanto,
+        t.latitud,
+        t.longitud,
+        t.elevacion,
+        t.fecha_estatus
+      FROM tendido t
+      LEFT JOIN nodos n ON t.id_nodo = n.id
+      LEFT JOIN tipo_tendido tt ON t.id_tipo_tendido = tt.id
+      ORDER BY t.linea, CAST(t.estaca AS INTEGER)
+    `).all();
+
+    res.json(data);
+  } catch (error) {
+    console.error("❌ Error al obtener registros de tendido:", error);
+    res.status(500).json({ error: "Error al obtener registros de tendido." });
+  }
+});
+
+// --------------------------------------------------
+// 📋 GET /api/tendido/linea/:linea
+// Obtener registros por número de línea
+// --------------------------------------------------
+app.get("/api/tendido/linea/:linea", (req, res) => {
+  const { linea } = req.params;
+  try {
+    const data = db.prepare(`
+      SELECT 
+        t.id,
+        t.linea,
+        t.estaca,
+        t.id_nodo,
+        n.serie AS serie_nodo,
+        t.geofono,
+        t.arnes,
+        tt.nombre AS tipo_tendido,
+        t.latitud,
+        t.longitud,
+        t.elevacion,
+        t.fecha_estatus
+      FROM tendido t
+      LEFT JOIN nodos n ON t.id_nodo = n.id
+      LEFT JOIN tipo_tendido tt ON t.id_tipo_tendido = tt.id
+      WHERE t.linea = ?
+      ORDER BY CAST(t.estaca AS INTEGER)
+    `).all(linea);
+
+    res.json(data);
+  } catch (error) {
+    console.error("❌ Error al obtener tendido por línea:", error);
+    res.status(500).json({ error: "Error al obtener tendido por línea." });
+  }
+});
+
+// --------------------------------------------------
+// 📋 GET /api/tendido/nodo/:id_nodo
+// Obtener registro por nodo específico
+// --------------------------------------------------
+app.get("/api/tendido/nodo/:id_nodo", (req, res) => {
+  const { id_nodo } = req.params;
+  try {
+    const data = db.prepare(`
+      SELECT 
+        t.id,
+        t.linea,
+        t.estaca,
+        n.serie AS serie_nodo,
+        t.geofono,
+        t.arnes,
+        tt.nombre AS tipo_tendido,
+        t.latitud,
+        t.longitud,
+        t.elevacion,
+        t.fecha_estatus
+      FROM tendido t
+      LEFT JOIN nodos n ON t.id_nodo = n.id
+      LEFT JOIN tipo_tendido tt ON t.id_tipo_tendido = tt.id
+      WHERE t.id_nodo = ?
+    `).all(id_nodo);
+
+    res.json(data);
+  } catch (error) {
+    console.error("❌ Error al obtener tendido por nodo:", error);
+    res.status(500).json({ error: "Error al obtener tendido por nodo." });
+  }
+});
+
+app.post("/api/tendido", (req, res) => {
+  const {
+    linea,
+    estaca,
+    id_nodo,
+    geofono,
+    arnes,
+    id_tipo_tendido,
+    nombre_tendio,
+    nombre_roto,
+    nombre_levanto,
+    latitud,
+    longitud,
+    elevacion,
+    fecha_estatus
+  } = req.body;
+
+  try {
+    // Si no se envía fecha_estatus, se usa la fecha actual local
+    const fecha = fecha_estatus || new Date().toISOString().split("T")[0];
+
+    const stmt = db.prepare(`
+      INSERT INTO tendido (
+        linea, estaca, id_nodo, geofono, arnes, id_tipo_tendido,
+        nombre_tendio, nombre_roto, nombre_levanto,
+        latitud, longitud, elevacion, fecha_estatus
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      linea,
+      estaca,
+      id_nodo,
+      geofono ? 1 : 0,
+      arnes,
+      id_tipo_tendido,
+      nombre_tendio,
+      nombre_roto,
+      nombre_levanto,
+      latitud,
+      longitud,
+      elevacion,
+      fecha
+    );
+
+    res.json({
+      message: "✅ Registro diario de nodo guardado correctamente",
+      id: result.lastInsertRowid
+    });
+
+  } catch (err) {
+    console.error("❌ Error al insertar tendido:", err);
+    res.status(500).json({ error: "Error al insertar registro en tendido." });
+  }
+});
+
+
+// --------------------------------------------------
+// ✏️ PUT /api/tendido/:id
+// Actualizar registro existente
+// --------------------------------------------------
+app.put("/api/tendido/:id", (req, res) => {
+  const { id } = req.params;
+  const {
+    linea,
+    estaca,
+    id_nodo,
+    geofono,
+    arnes,
+    id_tipo_tendido,
+    nombre_tendio,
+    nombre_roto,
+    nombre_levanto,
+    latitud,
+    longitud,
+    elevacion,
+    fecha_estatus
+  } = req.body;
+
+  try {
+    const stmt = db.prepare(`
+      UPDATE tendido SET
+        linea = ?, estaca = ?, id_nodo = ?, geofono = ?, arnes = ?,
+        id_tipo_tendido = ?, nombre_tendio = ?, nombre_roto = ?, nombre_levanto = ?,
+        latitud = ?, longitud = ?, elevacion = ?, fecha_estatus = ?
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(
+      linea,
+      estaca,
+      id_nodo,
+      geofono ? 1 : 0,
+      arnes,
+      id_tipo_tendido,
+      nombre_tendio,
+      nombre_roto,
+      nombre_levanto,
+      latitud,
+      longitud,
+      elevacion,
+      fecha_estatus,
+      id
+    );
+
+    res.json({
+      message: "✅ Registro actualizado correctamente",
+      changes: result.changes
+    });
+  } catch (error) {
+    console.error("❌ Error al actualizar tendido:", error);
+    res.status(500).json({ error: "Error al actualizar registro en tendido." });
+  }
+});
+
+app.get("/api/tendido/comparar", (req, res) => {
+  const { fecha1, fecha2, linea, estaca, id_nodo } = req.query;
+
+  if (!fecha1 || !fecha2) {
+    return res.status(400).json({ error: "Debe especificar fecha1 y fecha2 en formato YYYY-MM-DD" });
+  }
+
+  try {
+    let filtros = "";
+    const params = [fecha1];
+    if (linea) { filtros += " AND t.linea = ?"; params.push(linea); }
+    if (estaca) { filtros += " AND t.estaca = ?"; params.push(estaca); }
+    if (id_nodo) { filtros += " AND t.id_nodo = ?"; params.push(id_nodo); }
+
+    const registros1 = db.prepare(`
+      SELECT t.*, n.serie AS serie_nodo
+      FROM tendido t
+      LEFT JOIN nodos n ON t.id_nodo = n.id
+      WHERE t.fecha_estatus = ?${filtros}
+    `).all(...params);
+
+    const params2 = [fecha2];
+    if (linea) { params2.push(linea); }
+    if (estaca) { params2.push(estaca); }
+    if (id_nodo) { params2.push(id_nodo); }
+
+    const registros2 = db.prepare(`
+      SELECT t.*, n.serie AS serie_nodo
+      FROM tendido t
+      LEFT JOIN nodos n ON t.id_nodo = n.id
+      WHERE t.fecha_estatus = ?${filtros}
+    `).all(...params2);
+
+    // 🔹 Mapear para comparación
+    const map1 = Object.fromEntries(registros1.map(r => [r.id_nodo, r]));
+    const map2 = Object.fromEntries(registros2.map(r => [r.id_nodo, r]));
+
+    const sin_cambios = [];
+    const cambiaron_posicion = [];
+    const desaparecidos = [];
+    const nuevos = [];
+
+    for (const nodo of registros1) {
+      const actual = map2[nodo.id_nodo];
+      if (!actual) {
+        desaparecidos.push(nodo);
+      } else {
+        const mismoLugar =
+          nodo.linea === actual.linea &&
+          nodo.estaca === actual.estaca &&
+          Math.abs((nodo.latitud || 0) - (actual.latitud || 0)) < 0.00001 &&
+          Math.abs((nodo.longitud || 0) - (actual.longitud || 0)) < 0.00001;
+        if (mismoLugar) sin_cambios.push(actual);
+        else cambiaron_posicion.push({ antes: nodo, ahora: actual });
+      }
+    }
+
+    for (const nodo of registros2) {
+      if (!map1[nodo.id_nodo]) nuevos.push(nodo);
+    }
+
+    res.json({
+      resumen: {
+        fecha1,
+        fecha2,
+        filtros: { linea, estaca, id_nodo },
+        total_fecha1: registros1.length,
+        total_fecha2: registros2.length,
+        sin_cambios: sin_cambios.length,
+        cambiaron_posicion: cambiaron_posicion.length,
+        desaparecidos: desaparecidos.length,
+        nuevos: nuevos.length
+      },
+      sin_cambios,
+      cambiaron_posicion,
+      desaparecidos,
+      nuevos
+    });
+
+  } catch (err) {
+    console.error("❌ Error al comparar tendidos:", err);
+    res.status(500).json({ error: "Error al comparar tendidos por fechas" });
   }
 });
 

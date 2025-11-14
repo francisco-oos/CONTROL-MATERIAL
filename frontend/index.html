@@ -9,7 +9,25 @@
 <body>
 
   <!-- Cabecera -->
-  <header>Control de Material - Dashboard</header>
+<header>
+  <div class="header-left">
+    <img src="img/logo.png" class="logo-sinopec" alt="Logo">
+    <span data-i18n="title">Control de Material - Dashboard</span>
+  </div>
+
+  <div class="header-right">
+  <div id="language-selector">
+    <button data-lang="es" class="lang-btn">ES</button>
+    <button data-lang="en" class="lang-btn">EN</button>
+    <button data-lang="zh" class="lang-btn">中文</button>
+  </div>
+
+    <div class="header-user">
+      <span class="user-name">Usuario</span>
+      <div class="user-icon">U</div>
+    </div>
+  </div>
+</header>
 
   <!-- Contenido Principal -->
   <main>
@@ -163,12 +181,11 @@
         </div>
       </div>
 
-      <!-- ✅ NUEVA VISTA: MANTENIMIENTO -->
+      <!-- NUEVA VISTA: MANTENIMIENTO -->
       <div id="vista-nodos-mantenimiento" class="vista" style="display:none;">
         <div class="vista-nodos-mantenimiento">
           <h2>🧰 Nodos en Mantenimiento</h2>
 
-          <!-- Filtros -->
           <div class="filtros">
             <label for="filtro-serie-mantenimiento">Serie:</label>
             <input type="text" id="filtro-serie-mantenimiento" placeholder="Buscar serie...">
@@ -179,7 +196,6 @@
             <button class="btn-azul" onclick="aplicarFiltrosmantenimiento()">Aplicar filtros</button>
           </div>
 
-          <!-- Tabla -->
           <div class="tabla-scroll">
             <table id="tabla-preview-mantenimiento">
               <thead>
@@ -196,7 +212,6 @@
             </table>
           </div>
 
-          <!-- Paginación -->
           <div class="paginacion">
             <button onclick="paginaAnteriormantenimiento()">Anterior</button>
             <button onclick="paginaSiguientemantenimiento()">Siguiente</button>
@@ -204,7 +219,7 @@
           </div>
         </div>
       </div>
-      <!-- 🔚 Fin de Vista Mantenimiento -->
+      <!-- FIN VISTA MANTENIMIENTO -->
 
     </section>
   </main>
@@ -236,4 +251,5 @@
   <script type="module" src="js/vistas/asignarEvidencia.js"></script>
   <script type="module" src="js/vistas/VistaMantenimiento.js"></script>
 </body>
+<script src="C:/Users/Control de Material/Documents/dev-Francisco/CONTROL-MATERIAL/frontend/i18n.js"></script>
 </html>

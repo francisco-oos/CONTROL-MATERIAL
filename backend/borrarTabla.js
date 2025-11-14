@@ -71,7 +71,7 @@ db.exec(`
 db.close();
 console.log("✅ Tabla 'incautado' recreada y estatus 'Recuperado' agregado (si no existía).");
 */
-try {
+/*try {
   db.prepare(`
     INSERT OR IGNORE INTO tecnologia (nombre)
     VALUES ('Geófono');
@@ -82,4 +82,29 @@ try {
   console.error("❌ Error al agregar la tecnología:", err);
 } finally {
   db.close();
-}
+}*/
+
+/*/ Eliminar la tabla si ya existe*/
+db.exec(`DROP TABLE IF EXISTS tendido;`);
+db.exec(`
+CREATE TABLE IF NOT EXISTS tendido (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  linea TEXT,
+  estaca TEXT,
+  id_nodo INTEGER,
+  geofono INTEGER DEFAULT 0,  -- 0 = false, 1 = true
+  arnes TEXT,
+  id_tipo_tendido INTEGER,
+  nombre_tendio TEXT,
+  nombre_roto TEXT,
+  nombre_levanto TEXT,
+  latitud REAL,
+  longitud REAL,
+  elevacion REAL,
+  fecha_estatus TEXT, -- formato YYYY-MM-DD
+  FOREIGN KEY (id_nodo) REFERENCES nodos(id),
+  FOREIGN KEY (id_tipo_tendido) REFERENCES tipo_tendido(id)
+  );
+`);
+db.close();
+console.log("✅ Tabla 'tendido' recreada ");

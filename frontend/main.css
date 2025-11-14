@@ -1,6 +1,5 @@
-/* main.css */
 /* --------------------------------------------------
-   Estilos modernos tipo dashboard para Control de Material
+   MAIN CSS – Tema Estilo SINOPEC
 -------------------------------------------------- */
 
 * {
@@ -10,16 +9,16 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, sans-serif;
-  background-color: #f4f6f8;
+  background-color: #f2f2f2;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  color: #333;
+  color: #2b2b2b;
 }
 
 /* ---------- HEADER ---------- */
 header {
-  background-color: #004b87;
+  background-color: #e60012; /* Rojo SINOPEC */
   color: white;
   padding: 15px 25px;
   text-align: center;
@@ -40,7 +39,7 @@ main {
 /* ---------- SIDEBAR ---------- */
 aside {
   width: 230px;
-  background-color: #022d57;
+  background: linear-gradient(180deg, #2b2b2b, #3a3a3a); /* Gris profesional */
   color: white;
   display: flex;
   flex-direction: column;
@@ -64,16 +63,16 @@ aside button {
   border-radius: 6px;
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.3s, transform 0.1s;
+  transition: background 0.25s, transform 0.12s;
 }
 
 aside button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  transform: scale(1.02);
+  background-color: rgba(255, 255, 255, 0.12);
+  transform: scale(1.03);
 }
 
 aside button.active {
-  background-color: #007bff;
+  background-color: #e60012; /* Rojo SINOPEC */
   font-weight: bold;
 }
 
@@ -85,7 +84,7 @@ section {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
-  background-color: #f4f6f8;
+  background-color: #f2f2f2;
 }
 
 /* ---------- CARDS ---------- */
@@ -93,57 +92,57 @@ section {
   background-color: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 5px solid #e60012;
 }
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.12);
 }
 
 .card h3 {
-  margin-top: 0;
-  color: #004b87;
+  margin: 0 0 10px;
+  color: #e60012;
 }
 
 .card p {
-  color: #555;
+  color: #444;
   font-size: 15px;
   margin-bottom: 0;
 }
 
 /* ---------- FOOTER ---------- */
 footer {
-  background-color: #004b87;
+  background-color: #2b2b2b;
   color: white;
   text-align: center;
   padding: 10px;
   font-size: 14px;
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15);
 }
+
 /* -------------------- Vista de Nodos -------------------- */
 
-/* Contenedor de Vista de Nodos */
-#vista-ver-nodos,#vista-ver-incautados, #vista-nodos-mantenimiento{
-  /*width: max-content; /* Ocupa el 100% del espacio disponible en el contenedor */
-   width: 1000%; /* Ocupa el 100% del espacio disponible en el contenedor */
-  max-width: 1200px; /* Limita el ancho máximo para pantallas grandes */
-  margin: 0 auto; /* Centra el contenedor en pantallas grandes */
+#vista-ver-nodos,
+#vista-ver-incautados,
+#vista-nodos-mantenimiento {
+  width: 1000%;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 30px;
   display: flex;
   flex-direction: column;
   gap: 30px;
   background-color: white;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra para resaltar */
-  overflow:scroll;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: scroll;
   box-sizing: border-box;
 }
 
-
-
-/* Filtros de Serie y Tecnología */
+/* ----------- FILTROS ----------- */
 .filtros {
   display: flex;
   flex-wrap: wrap;
@@ -152,73 +151,74 @@ footer {
   background-color: white;
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 100%; /* Asegura que los filtros usen todo el espacio */
+  border-left: 4px solid #e60012;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Estilo para las etiquetas dentro de los filtros */
 .filtros label {
   font-size: 14px;
   font-weight: 600;
-  color: #004b87;
+  color: #e60012;
 }
 
-/* Estilo de los campos de texto y select dentro de los filtros */
 .filtros input,
 .filtros select {
-  width: 48%; /* Los campos de texto y select ocupan el 48% cada uno */
+  width: 48%;
   padding: 12px;
   font-size: 14px;
   border-radius: 6px;
-  border: 1px solid #ddd;
-  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  background-color: #fafafa;
   color: #333;
 }
 
-/* Botón de aplicar filtros */
 .filtros button {
-  background-color: #007bff;
+  background-color: #e60012;
   color: white;
   border: none;
   padding: 12px 20px;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: 0.3s;
   width: 100%;
   margin-top: 10px;
 }
 
 .filtros button:hover {
-  background-color: #005fcc;
+  background-color: #c40010;
 }
 
-/* -------------------- Tabla de Nodos -------------------- */
+/* -------------------- TABLAS -------------------- */
 
-/* Hacer la tabla más amplia */
 .tabla-scroll {
-  width: 100%;; /* Asegura que la tabla ocupe todo el espacio */
-  overflow-x: auto; /* Permite desplazarse horizontalmente */
+  width: 100%;
+  overflow-x: auto;
   box-sizing: border-box;
 }
 
-
-#tabla-preview-nodos,#tabla-preview-incautado ,#tabla-preview-mantenimiento {
-  width: 100%; /* Asegura que la tabla ocupe todo el ancho */
+#tabla-preview-nodos,
+#tabla-preview-incautado,
+#tabla-preview-mantenimiento {
+  width: 100%;
   border-collapse: collapse;
 }
 
-#tabla-preview-nodos th , #tabla-preview-nodos td,
-#tabla-preview-incautado  th,#tabla-preview-incautado td,
-#tabla-preview-mantenimientos th,#tabla-preview-mantenimiento td  {
+#tabla-preview-nodos th,
+#tabla-preview-incautado th,
+#tabla-preview-mantenimiento th {
   padding: 14px;
   text-align: center;
   border: 1px solid #ddd;
+  background-color: #e60012;
+  color: white;
 }
 
-#tabla-preview-nodos th ,#tabla-preview-incautado th,#tabla-preview-mantenimiento th
- {
-  background-color: #004b87;
-  color: white;
+#tabla-preview-nodos td,
+#tabla-preview-incautado td,
+#tabla-preview-mantenimiento td {
+  padding: 14px;
+  text-align: center;
+  border: 1px solid #e3e3e3;
 }
 
 /* -------------------- Paginación -------------------- */
@@ -227,111 +227,23 @@ footer {
   justify-content: space-between;
   margin-top: 30px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .paginacion button {
   padding: 12px 20px;
-  background-color: #004b87;
+  background-color: #e60012;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 .paginacion button:hover {
-  background-color: #007bff;
+  background-color: #c40010;
 }
 
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 768px) {
-  main {
-    flex-direction: column;
-  }
-
-  aside {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-around;
-    padding: 10px 0;
-  }
-
-  aside nav {
-    flex-direction: row;
-    gap: 5px;
-    padding: 0;
-  }
-
-  section {
-    grid-template-columns: 1fr;
-  }
-
-  /* Ajustes para la vista de nodos en dispositivos pequeños */
-  #vista-ver-nodos , #vista-ver-incautados , #vista-nodos-mantenimiento{
-    padding: 20px; /* Reducir un poco el padding en pantallas más pequeñas */
-    gap: 15px;
-    width: 100%; /* Asegurar que ocupe todo el ancho */
-    max-width: 100%; /* Eliminar el max-width en pantallas pequeñas */
-  }
-
-  .filtros {
-    flex-direction: column;
-    width: 100%; /* Los filtros ocupan todo el ancho en pantallas pequeñas */
-  }
-
-  .filtros input,
-  .filtros select {
-    width: 100%; /* Los filtros ocupan todo el ancho en pantallas pequeñas */
-  }
-}
-
-
-/* -------------------- Paginación -------------------- */
-.paginacion {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  width: 100%;
-}
-
-.paginacion button {
-  padding: 10px 20px;
-  background-color: #004b87;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.paginacion button:hover {
-  background-color: #007bff;
-}
-
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 768px) {
-  main {
-    flex-direction: column;
-  }
-
-  aside {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-around;
-    padding: 10px 0;
-  }
-
-  aside nav {
-    flex-direction: row;
-    gap: 5px;
-    padding: 0;
-  }
-
-  section {
-    grid-template-columns: 1fr;
-  }
-}
-/* === MODAL GLOBAL === */
+/* ---------- MODAL ---------- */
 .modal {
   display: none;
   position: fixed;
@@ -352,6 +264,7 @@ footer {
   max-height: 80vh;
   overflow-y: auto;
   animation: aparecer 0.25s ease-out;
+  border-top: 4px solid #e60012;
 }
 
 @keyframes aparecer {
@@ -373,4 +286,130 @@ footer {
   max-height: 300px;
   overflow-y: auto;
   margin-top: 10px;
+}
+/* --- LOGO SINOPEC EN HEADER --- */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-sinopec {
+  height: 45px;
+  width: auto;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+/* Sidebar estilo Sinopec */
+aside {
+  background: linear-gradient(#7a0000, #4c0000);
+}
+
+aside button.active {
+  background-color: #c40000;
+}
+
+/* Botón azul general mejorado */
+.btn-azul {
+  background-color: #004b87;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-azul:hover {
+  background-color: #0066c2;
+}
+
+/* Botón rojo */
+.btn-rojo {
+  background-color: #b60202;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-rojo:hover {
+  background-color: #e20000;
+}
+/* --- Header con Logo y Usuario --- */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* Logo izquierda / título centro / usuario derecha */
+  padding: 15px 25px;
+}
+
+/* Contenedor de la izquierda (logo + título) */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+header .logo-sinopec {
+  height: 45px;
+  width: auto;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+/* Contenedor usuario derecha */
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-user .user-name {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.header-user .user-icon {
+  width: 38px;
+  height: 38px;
+  background: white;
+  color: #e60012;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+}
+#language-selector {
+  display: flex;
+  gap: 8px;
+  margin-right: 20px;
+}
+
+#language-selector .lang-btn {
+  border: none;
+  padding: 6px 10px;
+  background: #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+#language-selector .lang-btn:hover {
+  background: #d0d0d0;
+}
+
+#language-selector .lang-btn.active {
+  background: #4a90e2;
+  color: white;
 }
