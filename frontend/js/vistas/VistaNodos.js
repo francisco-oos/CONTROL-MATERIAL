@@ -32,8 +32,22 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("vista-ver-nodos")) {
     inicializarVistaNodos();
   }
-  
 });
+  document
+    .getElementById("btn-aplicar-filtros-incautados")
+    .addEventListener("click", aplicarFiltrosNodos);
+  
+  document
+    .getElementById("btn-anterior-nodos")
+    .addEventListener("click", paginaAnterior);
+  
+  document
+    .getElementById("btn-siguiente-nodos")
+    .addEventListener("click", paginaSiguiente);
+  
+  document
+    .getElementById("pagina-input-nodos")
+    .addEventListener("click", irAPagina);
 
 export async function inicializarVistaNodos() {
   await cargarFiltrosTecnologia();
@@ -213,7 +227,6 @@ export function irAPagina() {
 export function aplicarFiltrosNodos(){
   currentSerie = document.getElementById("filtro-serie-nodos").value.trim();
   currentTecnologia = document.getElementById("filtro-tecnologia-nodos").value.trim();
-  // id correcto y paréntesis bien colocados:
   currentEstatus = document.getElementById("filtro-estatus-nodos")?.value.trim() || "";
   currentPage = 1;
   renderizarPagina();
