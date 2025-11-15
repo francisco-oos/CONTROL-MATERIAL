@@ -34,7 +34,7 @@ export const DB_PATH = path.join(
 "BASE DE DATOS",
 "control-inventario",
 "control_material.db",*/
-
+//COMPUTADORA MIZAEL
 "C:",
 "Users",
 "Control de Material",
