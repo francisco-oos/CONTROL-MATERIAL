@@ -1,0 +1,261 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title">Control de Material</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+  <!-- Cabecera -->
+<header>
+  <div class="header-left">
+    <img src="img/logo.jpg" class="logo-sinopec" alt="Logo">
+    <span data-i18n="title">Control de Material - Dashboard</span>
+  </div>
+
+  <div class="header-right">
+    <div id="language-selector">
+      <button data-lang="es" class="lang-btn">ES</button>
+      <button data-lang="en" class="lang-btn">EN</button>
+      <button data-lang="zh" class="lang-btn">中文</button>
+    </div>
+
+    <div class="header-user">
+      <span class="user-name" data-i18n="user">Usuario</span>
+      <div class="user-icon">U</div>
+    </div>
+  </div>
+</header>
+
+  <!-- Contenido Principal -->
+  <main>
+    <!-- Menú Lateral -->
+    <aside>
+      <nav>
+       <!-- <button class="active" data-view="vista-inicio" data-i18n="menu_inicio">Inicio</button>-->
+        <button data-view="equipos" data-i18n="menu_gestion_equipos">Gestión de Equipos</button>
+        <button data-view="material" data-i18n="menu_control_material">Control de Material</button>
+        <button data-view="reportes" data-i18n="menu_reportes">Reportes</button>
+        <button data-view="configuracion" data-i18n="menu_configuracion">Configuración</button>
+        <button data-view="cargar-nodos" data-i18n="menu_cargar_nodos">Cargar Base de Nodos</button>
+        <button data-view="vista-cargar-incautados" data-i18n="menu_cargar_incautados">Cargar Base de Nodos Incautados</button>
+        <button data-view="ver-nodos" data-i18n="menu_ver_nodos">Ver Nodos</button>
+        <button data-view="vista-nodos-mantenimiento" data-i18n="menu_mantenimiento">Mantenimiento</button>
+        <button data-view="vista-ver-incautados" data-i18n="menu_ver_incautados">Incautados</button>
+      </nav>
+    </aside>
+
+    <!-- Sección de contenido -->
+    <section id="content">
+
+<div class="vista" id="vista-inicio" style="display: block;">
+    <div class="card">
+        <h3 data-i18n="bienvenido">Bienvenido</h3>
+        <p data-i18n="selecciona_seccion">Selecciona una sección del menú lateral para comenzar.</p>
+    </div>
+</div>
+
+
+      <!-- Vista: Cargar Nodos -->
+      <div id="vista-cargar-nodos" class="vista" style="display:none;">
+        <div class="vista-cargar-nodos">
+          <h2 data-i18n="cargar_nodos_titulo">Cargar Base de Nodos (CSV)</h2>
+
+          <input type="file" id="csvFileNodos" accept=".csv">
+          <button id="btn-enviar-nodos" data-i18n="enviar_servidor">Enviar al Servidor</button>
+
+          <div id="csv-preview-nodos" style="display:none; margin-top:20px;">
+            <h3 data-i18n="vista_previa_csv">Vista previa del CSV</h3>
+            <div class="tabla-scroll">
+              <table id="tabla-preview-nodos">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Cargar Incautados -->
+      <div id="vista-cargar-incautados" class="vista" style="display:none;">
+        <h2 data-i18n="cargar_incautados_titulo">Cargar material incautado</h2>
+        <input type="file" id="csvFileIncautados" accept=".csv" />
+        <button id="btn-descargar-formato-incautados" data-i18n="descargar_formato">Descargar formato CSV</button>
+        <button id="btn-enviar-incautados" data-i18n="subir_servidor">🚀 Subir al servidor</button>
+
+        <div id="csv-preview-incautados" style="display:none;">
+          <table id="tabla-preview-incautados" border="1">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vista: Ver Nodos -->
+      <div id="vista-ver-nodos" class="vista" style="display:none;">
+        <div class="vista-ver-nodos">
+          <h2 data-i18n="lista_nodos">Listado de Nodos</h2>
+
+          <div class="filtros">
+            <label for="filtro-serie" data-i18n="serie">Serie:
+            <input type="text" id="filtro-serie-nodos"></label>
+            
+            <label for="filtro-tecnologia" data-i18n="tecnologia">Tecnología:
+            <select id="filtro-tecnologia-nodos"></select></label>
+
+            <label for="filtro-estatus" data-i18n="estatus">Estatus:
+            <select id="filtro-estatus-nodos"></select></label>
+
+            <button class="btn-azul" onclick="aplicarFiltrosNodos()" data-i18n="aplicar_filtros">Aplicar filtros</button>
+          </div>
+
+          <div class="tabla-scroll">
+            <table id="tabla-preview-nodos">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th data-i18n="serie">Serie</th>
+                  <th data-i18n="tecnologia">Tecnología</th>
+                  <th data-i18n="estatus">Estatus</th>
+                  <th data-i18n="fecha_act">Fecha Actualización</th>
+                  <th data-i18n="accion">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-nodos"></tbody>
+            </table>
+          </div>
+
+          <div class="paginacion">
+            <button id="btn-anterior-nodos" data-i18n="anterior">Anterior</button>
+            <button id="btn-siguiente-nodos" data-i18n="siguiente">Siguiente</button>
+            <input type="number" id="pagina-input-nodos" placeholder="Ir a página" min="1">
+            <button id="btn-ir-nodos" data-i18n="ir">Ir</button>
+            <span id="pagina-actual-nodos" data-i18n="pagina">Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Incautados -->
+      <div id="vista-ver-incautados" class="vista" style="display:none;">
+        <div class="vista-ver-incautados">
+          <h2 data-i18n="incautados_titulo">Material Incautado</h2>
+
+          <div class="filtros">
+            <label data-i18n="serie">Serie:
+            <input type="text" id="filtro-serie-incautado" placeholder="Buscar serie..."></label>
+            <label data-i18n="tecnologia">Tecnología:
+            <select id="filtro-tecnologia-incautado"></select></label>
+            <label data-i18n="estatus">Estatus:
+            <select id="filtro-estatus-incautado"></select></label>
+            <button id="btn-aplicar-filtros-incautados" class="btn-azul" data-i18n="aplicar_filtros">Aplicar filtros</button></label>
+          </div>
+
+          <div class="tabla-scroll">
+            <table id="tabla-preview-incautado">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th data-i18n="nodo">Nodo</th>
+                  <th data-i18n="tecnologia">Tecnología</th>
+                  <th data-i18n="estatus">Estatus</th>
+                  <th data-i18n="linea">Línea</th>
+                  <th data-i18n="estaca">Estaca</th>
+                  <th data-i18n="propietario">Propietario</th>
+                  <th data-i18n="localidad">Localidad</th>
+                  <th data-i18n="fecha_incautado">Fecha Incautado</th>
+                  <th data-i18n="cambiar_estatus">Cambiar Estatus</th>
+                  <th data-i18n="evidencia">Evidencia</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-incautados"></tbody>
+            </table>
+          </div>
+
+          <div class="paginacion">
+            <button id="btn-anterior-incautados" data-i18n="anterior">Anterior</button>
+            <button id="btn-siguiente-incautados" data-i18n="siguiente">Siguiente</button>
+            <input type="number" id="pagina-input-incautados" placeholder="Ir a página" min="1">
+            <button id="btn-ir-incautados" data-i18n="ir">Ir</button>
+            <span id="pagina-actual-incautados" data-i18n="pagina">Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NUEVA VISTA: MANTENIMIENTO -->
+      <div id="vista-nodos-mantenimiento" class="vista" style="display:none;">
+        <div class="vista-nodos-mantenimiento">
+          <h2 data-i18n="mantenimiento_title">Nodos en Mantenimiento</h2>
+
+
+          <div class="filtros">
+            <label data-i18n="serie">Serie:
+            <input type="text" id="filtro-serie-mantenimiento" placeholder="Buscar serie..."></label>
+            <label data-i18n="tecnologia">Tecnología:
+            <select id="filtro-tecnologia-mantenimiento"></select></label>
+            <label data-i18n="estatus">Estatus:
+            <select id="filtro-estatus-mantenimiento"></select></label>
+            <button class="btn-azul" onclick="aplicarFiltrosmantenimiento()" data-i18n="aplicar_filtros">Aplicar filtros</button>
+          </div>
+
+          <div class="tabla-scroll">
+            <table id="tabla-preview-mantenimiento">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th data-i18n="serie">Serie</th>
+                  <th data-i18n="tecnologia">Tecnología</th>
+                  <th data-i18n="estatus">Estatus</th>
+                  <th data-i18n="fecha_act">Fecha Actualización</th>
+                  <th data-i18n="accion">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-nodos-mantenimiento"></tbody>
+            </table>
+          </div>
+
+          <div class="paginacion">
+            <button onclick="paginaAnteriormantenimiento()" data-i18n="anterior">Anterior</button>
+            <button onclick="paginaSiguientemantenimiento()" data-i18n="siguiente">Siguiente</button>
+            <span id="pagina-actual-mantenimiento" data-i18n="pagina">Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
+      <!-- FIN VISTA MANTENIMIENTO -->
+
+    </section>
+  </main>
+
+  <!-- Modal para Asignar Evidencia -->
+  <div id="modal-asignar-evidencia" class="modal" style="display:none;">
+    <div class="modal-contenido">
+      <h3 data-i18n="modal_asignar_titulo">Asignar evidencia a otros materiales incautados</h3>
+      <p data-i18n="modal_asignar_texto">Selecciona los materiales relacionados con este archivo:</p>
+      <div id="lista-incautados-relacionados" class="lista-incautados"></div>
+      <div class="modal-botones">
+        <button id="btn-confirmar-asignacion" class="btn-azul" data-i18n="confirmar">Confirmar</button>
+        <button id="btn-cancelar-asignacion" class="btn-rojo" data-i18n="cancelar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie de Página -->
+  <footer>© 2025 <span data-i18n="footer">Control de Material</span></footer>
+
+  <!-- Librerías -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Scripts principales -->
+  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/vistas/VistaNodos.js"></script>
+  <script type="module" src="js/vistas/cargarNodos.js"></script>
+  <script type="module" src="js/vistas/cargarIncautados.js"></script>
+  <script type="module" src="js/vistas/asignarEvidencia.js"></script>
+  <script type="module" src="js/vistas/VistaMantenimiento.js"></script>
+
+  <!-- Traducciones -->
+  <script src="js/i18n.js"></script>
+
+</body>
+</html>
